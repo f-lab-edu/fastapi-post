@@ -25,3 +25,11 @@ repos:
         - "sqlmodel==0.0.19"
       args:
         - --config-file=pyproject.toml
+
+- repo: local
+  hooks:
+    - id: e2e test
+      name: e2e test
+      entry: pytest
+      language: system
+      types: [python]
