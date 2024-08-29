@@ -23,6 +23,6 @@ class UserService:
 
     async def get_user_by_nickname(self, nickname: str) -> User | None:
         result = await self.session.exec(select(User).where(User.nickname == nickname))
-        user = result.first()
+        user: User | None = result.first()
 
         return user

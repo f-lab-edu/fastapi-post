@@ -11,11 +11,13 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def hash_password(plain_password: str) -> str:
-    return pwd_context.hash(secret=plain_password)
+    hashed_password: str = pwd_context.hash(secret=plain_password)
+    return hashed_password
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(secret=plain_password, hash=hashed_password)
+    valid: bool = pwd_context.verify(secret=plain_password, hash=hashed_password)
+    return valid
 
 
 async def get_current_user(
@@ -42,6 +44,11 @@ async def get_current_user(
         role=session_content_json["role"],
         expire=session_content_json["expire"],
     )
+
+    if not session_content.expire:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="세션 만료 기한이 없습니다."
+        )
 
     is_expired = datetime.now(tz=timezone.utc) >= session_content.expire
     if is_expired:

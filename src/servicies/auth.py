@@ -13,13 +13,15 @@ class AuthService:
     def __init__(self, session: AsyncSession = Depends(get_session)) -> None:
         self.session = session
 
-    # db에서 가져오는 걸로 바꿔야 함 -> 서비스로 옮긴다
-    async def find_session(self, session_id: str) -> LoginSession | None:
+    async def find_session(self, session_id: str | None = None) -> LoginSession | None:
+        if not session_id:
+            return None
+
         result = await self.session.exec(
             select(LoginSession).where(LoginSession.id == session_id)
         )
 
-        result_data = result.first()
+        result_data: LoginSession | None = result.first()
         if not result_data:
             return None
 

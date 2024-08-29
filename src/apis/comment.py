@@ -4,6 +4,7 @@ from src.auth import get_current_user
 from src.domains.user import Role
 from src.schemas.auth import SessionContent
 from src.schemas.comment import (
+    CommentResponse,
     CommentsResponse,
     CreateCommentRequest,
     CreateCommentResponse,
@@ -27,9 +28,7 @@ async def create_comment(
     request: CreateCommentRequest,
     comment_service: CommentService = Depends(CommentService),
     post_service: PostService = Depends(PostService),
-    current_user: SessionContent = Depends(
-        get_current_user
-    ),  # TODO: type hint -> mypy 적용해보기 (+ pre-commit-config 추가히기)
+    current_user: SessionContent = Depends(get_current_user),
 ) -> CreateCommentResponse:
     user_id = current_user.id
 
@@ -42,6 +41,12 @@ async def create_comment(
     new_comment = await comment_service.create_comment(
         user_id=user_id, post_id=request.post_id, content=request.content
     )
+
+    if not new_comment.id:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="코멘트 생성에 실패했습니다.",
+        )
 
     return CreateCommentResponse(
         id=new_comment.id,
@@ -61,12 +66,24 @@ async def create_comment(
 async def get_comments(
     post_id: int | None = None,
     user_id: int | None = None,
-    page: int | None = Query(1),
+    page: int = Query(1),
     service: CommentService = Depends(CommentService),
 ) -> CommentsResponse:
     comments = await service.get_comments(post_id=post_id, user_id=user_id, page=page)
 
-    return CommentsResponse(comments=[comment.model_dump() for comment in comments])
+    return CommentsResponse(
+        comments=[
+            CommentResponse(
+                id=comment.id,  # type: ignore
+                post_id=comment.post_id,
+                author_id=comment.author_id,
+                content=comment.content,
+                created_at=comment.created_at,
+                updated_at=comment.updated_at,
+            )
+            for comment in comments
+        ]
+    )
 
 
 @router.patch("/{comment_id}", status_code=status.HTTP_204_NO_CONTENT)

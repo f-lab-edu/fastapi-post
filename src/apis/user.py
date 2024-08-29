@@ -28,6 +28,12 @@ async def signup(
         nickname=request.nickname, password=request.password
     )
 
+    if not new_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="유저 생성에 실패했습니다.",
+        )
+
     return SignUpResponse(id=new_user.id, nickname=new_user.nickname)
 
 
@@ -53,8 +59,12 @@ async def login(
         )
 
     session = await auth_service.find_session(session_id)
-    new_session_id = session_id if session else str(ULID.from_datetime(datetime.now()))
-    session_value = SessionContent(id=user.id, nickname=user.nickname, role=user.role)
+    new_session_id = (
+        session_id
+        if (session and session_id)
+        else str(ULID.from_datetime(datetime.now()))
+    )
+    session_value = SessionContent(id=user.id, nickname=user.nickname, role=user.role)  # type: ignore
     await auth_service.insert_session(
         session_id=new_session_id,
         content=session_value,
@@ -70,7 +80,13 @@ async def logout(
     session_id: str | None = Cookie(None),
     auth_service: AuthService = Depends(AuthService),
 ) -> None:
+    if not session_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="세션 아이디가 없습니다."
+        )
+
     session = await auth_service.find_session(session_id)
+
     if session:
         await auth_service.delete_session(session)
     else:

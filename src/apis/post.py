@@ -8,7 +8,7 @@ from src.schemas.post import (
     CreatePostResponse,
     EditPostRequest,
     EditPostWholeRequest,
-    PostOneResponse,
+    PostResponse,
     PostsResponse,
 )
 from src.servicies.post import PostService
@@ -30,31 +30,41 @@ async def create_post(
         user_id=user_id, title=request.title, content=request.content
     )
 
+    if not new_post.id:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="포스트 생성에 실패했습니다.",
+        )
+
     return CreatePostResponse(id=new_post.id)
 
 
 @router.get("/", response_model=PostsResponse, status_code=status.HTTP_200_OK)
 async def get_get_posts(
-    page: int | None = Query(1), service: PostService = Depends(PostService)
+    page: int = Query(1), service: PostService = Depends(PostService)
 ) -> PostsResponse:
     posts = await service.get_posts(page)
 
     return PostsResponse(posts=[post.model_dump() for post in posts])
 
 
-@router.get(
-    "/{post_id}", response_model=PostOneResponse, status_code=status.HTTP_200_OK
-)
+@router.get("/{post_id}", response_model=PostResponse, status_code=status.HTTP_200_OK)
 async def get_post(
     post_id: int, service: PostService = Depends(PostService)
-) -> PostOneResponse:
+) -> PostResponse:
     post = await service.get_post(post_id)
     if not post:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="존재하지 않는 포스트입니다"
         )
 
-    return PostOneResponse(
+    if not post.id:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="포스트 생성에 실패했습니다.",
+        )
+
+    return PostResponse(
         id=post.id,
         author=post.user.nickname,
         title=post.title,

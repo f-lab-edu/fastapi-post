@@ -6,7 +6,7 @@ from src.domains.post import Post
 from src.domains.user import User
 
 
-class Comment(SQLModel, table=True):
+class Comment(SQLModel, table=True):  # type: ignore
     id: int | None = Field(primary_key=True)
     content: str
     created_at: datetime = Field(default=func.now())

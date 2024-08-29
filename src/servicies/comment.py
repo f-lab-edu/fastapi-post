@@ -56,7 +56,7 @@ class CommentService:
         result = await self.session.exec(
             select(Comment).where(Comment.id == comment_id)
         )
-        comment = result.first()
+        comment: Comment | None = result.first()
 
         return comment
 

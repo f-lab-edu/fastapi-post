@@ -6,9 +6,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlmodel import SQLModel, create_engine
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from config import config
-
-# TODO import 문 포매팅이 안되어 있는듯. pre-commit run
+from src.config import config
 
 DATABASE_URL = config.DATABASE_URL
 engine = AsyncEngine(create_engine(url=DATABASE_URL, pool_size=20, max_overflow=0))
@@ -22,8 +20,8 @@ async def db_init(app: FastAPI):
     yield
 
 
-async def get_session() -> AsyncSession:
-    AsyncSessionLocal = sessionmaker(
+async def get_session() -> AsyncSession:  # type: ignore
+    AsyncSessionLocal = sessionmaker(  # type: ignore
         autocommit=False,
         autoflush=False,
         bind=engine,

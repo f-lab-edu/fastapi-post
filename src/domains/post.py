@@ -5,7 +5,7 @@ from sqlmodel import Field, Relationship, SQLModel, func
 from src.domains.user import User
 
 
-class Post(SQLModel, table=True):
+class Post(SQLModel, table=True):  # type: ignore
     id: int | None = Field(primary_key=True)
     title: str
     content: str
@@ -17,7 +17,7 @@ class Post(SQLModel, table=True):
     author_id: int = Field(foreign_key="user.id")
     user: User = Relationship(back_populates="posts")
 
-    comments: list["Comment"] = Relationship(back_populates="post")
+    comments: list["Comment"] = Relationship(back_populates="post")  # type: ignore
 
     @property
     def author(self):

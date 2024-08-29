@@ -9,10 +9,19 @@ repos:
   hooks:
     - id: isort
       name: isort (python)
-      exclude: .
 
 - repo: https://github.com/hadialqattan/pycln
   rev: v2.4.0
   hooks:
     - id: pycln
       args: [--config=pyproject.toml]
+
+- repo: https://github.com/pre-commit/mirrors-mypy
+  rev: ''
+  hooks:
+    - id: mypy
+      additional_dependencies:
+        - "pydantic==v2.8.2"
+        - "sqlmodel==0.0.19"
+      args:
+        - --config-file=pyproject.toml

@@ -13,7 +13,7 @@ class CreatePostResponse(BaseModel):
     id: int
 
 
-class PostOneResponse(BaseModel):
+class PostResponse(BaseModel):
     id: int
     author: str
     title: str
@@ -23,7 +23,7 @@ class PostOneResponse(BaseModel):
 
 
 class PostsResponse(BaseModel):
-    posts: List[PostOneResponse]
+    posts: List[PostResponse]
 
 
 class EditPostRequest(BaseModel):

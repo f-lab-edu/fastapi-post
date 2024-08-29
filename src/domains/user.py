@@ -9,7 +9,7 @@ class Role(Enum):
     admin = "Admin"
 
 
-class User(SQLModel, table=True):
+class User(SQLModel, table=True):  # type: ignore
     id: int | None = Field(primary_key=True)
     nickname: str
     password: str
@@ -17,6 +17,5 @@ class User(SQLModel, table=True):
     created_at: datetime = Field(default=func.now())
     updated_at: datetime = Field(default_factory=func.now)
 
-    posts: list["Post"] = Relationship(back_populates="user")
-
-    comments: list["Comment"] = Relationship(back_populates="user")
+    posts: list["Post"] = Relationship(back_populates="user")  # type: ignore
+    comments: list["Comment"] = Relationship(back_populates="user")  # type: ignore

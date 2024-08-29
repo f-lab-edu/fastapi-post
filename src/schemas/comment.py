@@ -18,7 +18,7 @@ class CreateCommentResponse(BaseModel):
     updated_at: datetime
 
 
-class CommentOneResponse(BaseModel):
+class CommentResponse(BaseModel):
     id: int
     post_id: int
     author_id: int
@@ -28,7 +28,7 @@ class CommentOneResponse(BaseModel):
 
 
 class CommentsResponse(BaseModel):
-    comments: List[CommentOneResponse]
+    comments: List[CommentResponse]
 
 
 class EditComment(BaseModel):

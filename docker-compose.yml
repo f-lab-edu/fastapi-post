@@ -3,16 +3,18 @@ services:
   app:
     build: 
       context: .
-      dockerfile: dockerfile
+      dockerfile: Dockerfile
     image: fastapi-post:0.1
     ports:
       - "80:8000" 
     depends_on:
       - db
+      - redis
     networks:
       - app-network
     environment:
       - DATABASE_URL=mysql+aiomysql://user:password@db:3306/exampledb
+      - PYTHONPATH="./"
 
   db:
     image: mysql:lts 
@@ -26,6 +28,13 @@ services:
       MYSQL_USER: 'user'
       MYSQL_PASSWORD: 'password'
       MYSQL_ROOT_PASSWORD: 'root'
+    networks:
+      - app-network
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
     networks:
       - app-network
 

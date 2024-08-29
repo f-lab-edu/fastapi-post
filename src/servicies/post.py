@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 
 from fastapi import Depends
 from sqlmodel import select
@@ -49,7 +49,7 @@ class PostService:
             select(Post, User).join(User).where(Post.id == post_id)
         )
 
-        result_data = result.first()
+        result_data: Tuple[Post, User] | None = result.first()
         if not result_data:
             return None
 

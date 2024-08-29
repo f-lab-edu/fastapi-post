@@ -1,3 +1,5 @@
+# type: ignore
+
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
@@ -5,11 +7,11 @@ from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker, create_async
 from sqlmodel import SQLModel, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from config import config
-from main import app
 from src.auth import hash_password
+from src.config import config
 from src.database import get_session
 from src.domains.user import User
+from src.main import app
 
 DATABASE_URL = config.DATABASE_URL
 
