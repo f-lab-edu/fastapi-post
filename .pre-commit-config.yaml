@@ -30,7 +30,6 @@ repos:
   hooks:
     - id: e2e test
       name: e2e test
-      entry: pytest
+      entry: ./ pytest
       language: system
       types: [python]
-      testpaths: tests
