@@ -32,10 +32,6 @@ class PostService:
             .limit(self.items_per_page)
         )
         posts = result.all()
-        """
-        목록 -> 단순히 목록만 보여줄 뿐인데 조인까지 타야하나? 20개면 조인이 최소 20회 일어나는데?
-        작성자까지 포스트에 넣어둔다면? 유저와 작성자 내용이 중복된다 -> 트레이드 오프의 관계일까 
-        """
 
         author_include_posts: list[Post] = []
         for post, author in posts:
@@ -54,7 +50,8 @@ class PostService:
             return None
 
         post, user = result_data
-        post.user = user
+        # post.user = user
+        post.author = user
         return post
 
     async def edit_post(

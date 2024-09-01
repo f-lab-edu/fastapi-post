@@ -28,8 +28,10 @@ repos:
 
 - repo: local
   hooks:
-    - id: e2e test
-      name: e2e test
-      entry: ./ pytest
+    - id: test
+      name: test
+      entry: pytest tests
       language: system
       types: [python]
+      pass_filenames: false
+      always_run: true
