@@ -3,8 +3,7 @@
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker, create_async_engine
-from sqlmodel import SQLModel, select
+from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.auth import hash_password
@@ -15,30 +14,6 @@ from src.domains.user import User
 from src.main import app
 
 DATABASE_URL = config.DATABASE_URL
-
-
-@pytest_asyncio.fixture(scope="function")
-async def test_db_init():
-    test_engine = create_async_engine(url=DATABASE_URL, future=True)
-    async with test_engine.begin() as conn:
-        await conn.run_sync(SQLModel.metadata.drop_all)
-        await conn.run_sync(SQLModel.metadata.create_all)
-
-    yield test_engine
-
-    await test_engine.dispose()
-
-
-@pytest_asyncio.fixture
-async def test_session(test_db_init: AsyncEngine) -> AsyncSession:
-    AsyncSessionLocal = async_sessionmaker(
-        autocommit=False,
-        autoflush=False,
-        bind=test_db_init,
-        class_=AsyncSession,
-    )
-    async with AsyncSessionLocal() as session:
-        yield session
 
 
 @pytest_asyncio.fixture
