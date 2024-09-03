@@ -143,16 +143,13 @@ TOTAL                             712     90    87%
 
 ## Locust
 ```
-locust -f locust\stress_test.py
+locust -f locust-test\stress_test.py
 ```
-* 부하테스트 결과
+* workers = 1 부하테스트 결과
 ```
-Type     Name    # reqs      # fails |    Avg     Min     Max    Med |   req/s  failures/s--------|------|-------|-------------|-------|-------|-------|-------|--------|-----------GET      stress-test  919202 16493(1.79%) |  13431       4  440222   1200 | 1199.13       
-21.52
+locust-test\report_worker_1.html
 ```
-* Response time percentiles (approximated)
+* workers = 5 부하테스트 결과
 ```
-Type     Name            50%    66%    75%    80%    90%    95%    98%    99%  99.9% 99.99%   100% # reqs
---------|----------|--------|------|------|------|------|------|------|------|------|------|------|------
-GET      stress-test     1200   1500   2000   2300   3300   4000 378000 411000 434000 438000 440000 919202
+locust-test\report_worker_5.html
 ```

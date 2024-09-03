@@ -2,4 +2,3 @@ __pycache__/
 .env
 .test.env
 .venv/
-locust/
