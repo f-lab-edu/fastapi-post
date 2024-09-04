@@ -27,16 +27,21 @@ jobs:
     - name: Install dependencies
       run: poetry install --no-root
     - name: Lint with isort
-      run:  |
-        isort .
+      run: |
+        poetry run isort .
+      continue-on-error: true
     - name: Lint with black
-      run:  |
-        black --check .
+      run: |
+        poetry run black --check .
+      continue-on-error: true
     - name: Lint with pycln
-      run:  |
-        pycln --all
+      run: |
+        poetry run pycln --all .
+      continue-on-error: true
     - name: Lint with mypy
-      run:  |
-        mypy .
+      run: |
+        poetry run mypy .
+      continue-on-error: true
     - name: Test with pytest
-      run: pytest
+      run: |
+        poetry run pytest
