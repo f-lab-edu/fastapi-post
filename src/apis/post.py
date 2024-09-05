@@ -45,7 +45,19 @@ async def get_get_posts(
 ) -> PostsResponse:
     posts = await service.get_posts(page)
 
-    return PostsResponse(posts=[post.model_dump() for post in posts])
+    return PostsResponse(
+        posts=[
+            PostResponse(
+                id=post.id,  # type: ignore
+                author=post.author,
+                title=post.title,
+                content=post.content,
+                created_at=post.created_at,
+                updated_at=post.updated_at,
+            )
+            for post in posts
+        ]
+    )
 
 
 @router.get("/{post_id}", response_model=PostResponse, status_code=status.HTTP_200_OK)

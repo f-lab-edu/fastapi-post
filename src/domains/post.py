@@ -26,8 +26,3 @@ class Post(SQLModel, table=True):  # type: ignore
     @author.setter
     def author(self, author):
         self._author = author
-
-    def model_dump(self, *args, **kwargs):
-        data = super().model_dump(*args, **kwargs)
-        data["author"] = self.author
-        return data

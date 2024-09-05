@@ -42,14 +42,8 @@ async def create_comment(
         user_id=user_id, post_id=request.post_id, content=request.content
     )
 
-    if not new_comment.id:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="코멘트 생성에 실패했습니다.",
-        )
-
     return CreateCommentResponse(
-        id=new_comment.id,
+        id=new_comment.id,  # type: ignore
         author_id=new_comment.author_id,
         post_id=new_comment.post_id,
         content=new_comment.content,

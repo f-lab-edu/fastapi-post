@@ -45,12 +45,7 @@ async def get_current_user(
         expire=session_content_json["expire"],
     )
 
-    if not session_content.expire:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="세션 만료 기한이 없습니다."
-        )
-
-    is_expired = datetime.now(tz=timezone.utc) >= session_content.expire
+    is_expired = datetime.now(tz=timezone.utc) >= session_content.expire  # type: ignore
     if is_expired:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
