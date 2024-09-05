@@ -17,37 +17,39 @@ DATABASE_URL = config.DATABASE_URL
 
 
 @pytest_asyncio.fixture
-async def test_client(test_session: AsyncSession):
-    async def override_get_session():
+async def test_client(test_session: AsyncSession) -> AsyncClient:
+    async def override_get_session() -> AsyncSession:
         yield test_session
 
     app.dependency_overrides[get_session] = override_get_session
-    client = AsyncClient(transport=ASGITransport(app=app), base_url="http://test/users")
-
+    client = AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
     hashed_password = hash_password(plain_password="Test_password")
     new_user = User(nickname="test_user", password=hashed_password)
     test_session.add(new_user)
     await test_session.commit()
 
-    await client.post(
-        "/login",
+    yield client
+
+    app.dependency_overrides.clear()
+
+
+@pytest.mark.asyncio
+@pytest.mark.create
+async def test_create_post_ok(
+    test_client: AsyncClient, test_session: AsyncSession
+) -> None:
+    # given
+    await test_client.post(
+        "/users/login",
         json={
             "nickname": "test_user",
             "password": "Test_password",
         },
     )
 
-    client.base_url = "http://test/posts"
-    yield client
-    app.dependency_overrides.clear()
-
-
-@pytest.mark.asyncio
-@pytest.mark.create
-async def test_create_post_ok(test_client: AsyncClient, test_session: AsyncSession):
     # when
     response = await test_client.post(
-        "/",
+        "/posts/",
         json={
             "title": "test_title",
             "content": "test_content",
@@ -67,10 +69,17 @@ async def test_create_post_ok(test_client: AsyncClient, test_session: AsyncSessi
 @pytest.mark.create
 async def test_create_post_invalid_params(
     test_client: AsyncClient, test_session: AsyncSession
-):
+) -> None:
     # when
+    await test_client.post(
+        "/users/login",
+        json={
+            "nickname": "test_user",
+            "password": "Test_password",
+        },
+    )
     response = await test_client.post(
-        "/",
+        "/posts/",
         json={
             "title": None,
             "content": None,
@@ -87,7 +96,9 @@ async def test_create_post_invalid_params(
 
 @pytest.mark.asyncio
 @pytest.mark.posts
-async def test_get_posts_ok(test_client: AsyncClient, test_session: AsyncSession):
+async def test_get_posts_ok(
+    test_client: AsyncClient, test_session: AsyncSession
+) -> None:
     # given
     user_result = await test_session.exec(
         select(User).where(User.nickname == "test_user")
@@ -102,7 +113,7 @@ async def test_get_posts_ok(test_client: AsyncClient, test_session: AsyncSession
     await test_session.commit()
 
     # when
-    response = await test_client.get("/")
+    response = await test_client.get("/posts/")
 
     # then
     assert response.status_code == 200
@@ -111,9 +122,11 @@ async def test_get_posts_ok(test_client: AsyncClient, test_session: AsyncSession
 
 @pytest.mark.asyncio
 @pytest.mark.posts
-async def test_get_posts_empty_ok(test_client: AsyncClient, test_session: AsyncSession):
+async def test_get_posts_empty_ok(
+    test_client: AsyncClient, test_session: AsyncSession
+) -> None:
     # when
-    response = await test_client.get("/")
+    response = await test_client.get("/posts/")
 
     # then
     assert response.status_code == 200
@@ -126,7 +139,9 @@ async def test_get_posts_empty_ok(test_client: AsyncClient, test_session: AsyncS
 
 @pytest.mark.asyncio
 @pytest.mark.post
-async def test_get_post_ok(test_client: AsyncClient, test_session: AsyncSession):
+async def test_get_post_ok(
+    test_client: AsyncClient, test_session: AsyncSession
+) -> None:
     # given
     user_result = await test_session.exec(
         select(User).where(User.nickname == "test_user")
@@ -138,7 +153,7 @@ async def test_get_post_ok(test_client: AsyncClient, test_session: AsyncSession)
     await test_session.commit()
 
     # when
-    response = await test_client.get("/1")
+    response = await test_client.get("/posts/1")
 
     # then
     assert response.status_code == 200
@@ -151,9 +166,9 @@ async def test_get_post_ok(test_client: AsyncClient, test_session: AsyncSession)
 @pytest.mark.post
 async def test_get_post_not_exists(
     test_client: AsyncClient, test_session: AsyncSession
-):
+) -> None:
     # when
-    response = await test_client.get("/1")
+    response = await test_client.get("/posts/1")
 
     # then
     assert response.status_code == 400
@@ -162,7 +177,9 @@ async def test_get_post_not_exists(
 
 @pytest.mark.asyncio
 @pytest.mark.patch
-async def test_post_patch_ok(test_client: AsyncClient, test_session: AsyncSession):
+async def test_post_patch_ok(
+    test_client: AsyncClient, test_session: AsyncSession
+) -> None:
     # given
     user_result = await test_session.exec(
         select(User).where(User.nickname == "test_user")
@@ -172,10 +189,17 @@ async def test_post_patch_ok(test_client: AsyncClient, test_session: AsyncSessio
         Post(author_id=user.id, title="test_title_1", content="test_content_1")
     )
     await test_session.commit()
+    await test_client.post(
+        "/users/login",
+        json={
+            "nickname": "test_user",
+            "password": "Test_password",
+        },
+    )
 
     # when
     response = await test_client.patch(
-        url="/1", json={"content": "test_content_1_edit"}
+        url="/posts/1", json={"content": "test_content_1_edit"}
     )
 
     # then
@@ -190,10 +214,18 @@ async def test_post_patch_ok(test_client: AsyncClient, test_session: AsyncSessio
 @pytest.mark.patch
 async def test_post_patch_not_exists(
     test_client: AsyncClient, test_session: AsyncSession
-):
+) -> None:
+    # given
+    await test_client.post(
+        "/users/login",
+        json={
+            "nickname": "test_user",
+            "password": "Test_password",
+        },
+    )
     # when
     response = await test_client.patch(
-        url="/1", json={"content": "test_content_1_edit"}
+        url="/posts/1", json={"content": "test_content_1_edit"}
     )
 
     # then
@@ -205,7 +237,7 @@ async def test_post_patch_not_exists(
 @pytest.mark.patch
 async def test_post_patch_invalid_author(
     test_client: AsyncClient, test_session: AsyncSession
-):
+) -> None:
     # given
     user_result = await test_session.exec(
         select(User).where(User.nickname == "test_user")
@@ -214,27 +246,31 @@ async def test_post_patch_invalid_author(
     test_session.add(
         Post(author_id=user.id, title="test_title_1", content="test_content_1")
     )
-
     hashed_password = hash_password(plain_password="Test_password")
     new_user = User(nickname="test_user_2", password=hashed_password)
     test_session.add(new_user)
     await test_session.commit()
+    await test_client.post(
+        "/users/login",
+        json={
+            "nickname": "test_user",
+            "password": "Test_password",
+        },
+    )
 
     # when
     # 다른 아이디로 수정 시도. 세션아이디 변경 됨
-    test_client.base_url = "http://test/users"
     test_client.cookies.delete("session_id")
     await test_client.post(
-        "/login",
+        "/users/login",
         json={
             "nickname": "test_user_2",
             "password": "Test_password",
         },
     )
-    test_client.base_url = "http://test/posts"
 
     response = await test_client.patch(
-        url="/1", json={"content": "test_content_1_edit"}
+        url="/posts/1", json={"content": "test_content_1_edit"}
     )
 
     # then
@@ -244,7 +280,9 @@ async def test_post_patch_invalid_author(
 
 @pytest.mark.asyncio
 @pytest.mark.put
-async def test_post_put_ok(test_client: AsyncClient, test_session: AsyncSession):
+async def test_post_put_ok(
+    test_client: AsyncClient, test_session: AsyncSession
+) -> None:
     # given
     user_result = await test_session.exec(
         select(User).where(User.nickname == "test_user")
@@ -254,9 +292,15 @@ async def test_post_put_ok(test_client: AsyncClient, test_session: AsyncSession)
         Post(author_id=user.id, title="test_title_1", content="test_content_1")
     )
     await test_session.commit()
-
+    await test_client.post(
+        "/users/login",
+        json={
+            "nickname": "test_user",
+            "password": "Test_password",
+        },
+    )
     response = await test_client.put(
-        url="/1",
+        url="/posts/1",
         json={"title": "test_title_1_edit", "content": "test_content_1_edit"},
     )
 
@@ -273,10 +317,19 @@ async def test_post_put_ok(test_client: AsyncClient, test_session: AsyncSession)
 @pytest.mark.put
 async def test_post_put_not_exists(
     test_client: AsyncClient, test_session: AsyncSession
-):
+) -> None:
+    # given
+    await test_client.post(
+        "/users/login",
+        json={
+            "nickname": "test_user",
+            "password": "Test_password",
+        },
+    )
+
     # when
     response = await test_client.put(
-        url="/1",
+        url="/posts/1",
         json={"title": "test_title_1_edit", "content": "test_content_1_edit"},
     )
 
@@ -289,7 +342,7 @@ async def test_post_put_not_exists(
 @pytest.mark.put
 async def test_post_put_invalid_author(
     test_client: AsyncClient, test_session: AsyncSession
-):
+) -> None:
     # given
     user_result = await test_session.exec(
         select(User).where(User.nickname == "test_user")
@@ -298,27 +351,31 @@ async def test_post_put_invalid_author(
     test_session.add(
         Post(author_id=user.id, title="test_title_1", content="test_content_1")
     )
-
     hashed_password = hash_password(plain_password="Test_password")
     new_user = User(nickname="test_user_2", password=hashed_password)
     test_session.add(new_user)
     await test_session.commit()
+    await test_client.post(
+        "/users/login",
+        json={
+            "nickname": "test_user",
+            "password": "Test_password",
+        },
+    )
 
     # when
     # 다른 아이디로 수정 시도. 세션아이디 변경 됨
-    test_client.base_url = "http://test/users"
     test_client.cookies.delete("session_id")
     await test_client.post(
-        "/login",
+        "/users/login",
         json={
             "nickname": "test_user_2",
             "password": "Test_password",
         },
     )
-    test_client.base_url = "http://test/posts"
 
     response = await test_client.put(
-        url="/1",
+        url="/posts/1",
         json={"title": "test_title_1_edit", "content": "test_content_1_edit"},
     )
 
@@ -331,7 +388,7 @@ async def test_post_put_invalid_author(
 @pytest.mark.put
 async def test_post_put_missing_field(
     test_client: AsyncClient, test_session: AsyncSession
-):
+) -> None:
     # given
     user_result = await test_session.exec(
         select(User).where(User.nickname == "test_user")
@@ -341,9 +398,18 @@ async def test_post_put_missing_field(
         Post(author_id=user.id, title="test_title_1", content="test_content_1")
     )
     await test_session.commit()
+    await test_client.post(
+        "/users/login",
+        json={
+            "nickname": "test_user",
+            "password": "Test_password",
+        },
+    )
 
     # when
-    response = await test_client.put(url=f"/1", json={"content": "test_content_1_edit"})
+    response = await test_client.put(
+        url=f"/posts/1", json={"content": "test_content_1_edit"}
+    )
 
     # then
     assert response.status_code == 422
@@ -351,7 +417,9 @@ async def test_post_put_missing_field(
 
 @pytest.mark.asyncio
 @pytest.mark.delete
-async def test_post_delete_ok(test_client: AsyncClient, test_session: AsyncSession):
+async def test_post_delete_ok(
+    test_client: AsyncClient, test_session: AsyncSession
+) -> None:
     # given
     user_result = await test_session.exec(
         select(User).where(User.nickname == "test_user")
@@ -361,9 +429,16 @@ async def test_post_delete_ok(test_client: AsyncClient, test_session: AsyncSessi
         Post(author_id=user.id, title="test_title_1", content="test_content_1")
     )
     await test_session.commit()
+    await test_client.post(
+        "/users/login",
+        json={
+            "nickname": "test_user",
+            "password": "Test_password",
+        },
+    )
 
     # when
-    delete_response = await test_client.delete(url="/1")
+    delete_response = await test_client.delete(url="/posts/1")
     assert delete_response.status_code == 204
 
     # then
@@ -376,7 +451,7 @@ async def test_post_delete_ok(test_client: AsyncClient, test_session: AsyncSessi
 @pytest.mark.delete
 async def test_post_delete_invalid_author(
     test_client: AsyncClient, test_session: AsyncSession
-):
+) -> None:
     # given
     user_result = await test_session.exec(
         select(User).where(User.nickname == "test_user")
@@ -390,20 +465,25 @@ async def test_post_delete_invalid_author(
     new_user = User(nickname="test_user_2", password=hashed_password)
     test_session.add(new_user)
     await test_session.commit()
+    await test_client.post(
+        "/users/login",
+        json={
+            "nickname": "test_user",
+            "password": "Test_password",
+        },
+    )
 
     # 다른 아이디로 수정 시도. 세션아이디 변경 됨
-    test_client.base_url = "http://test/users"
     test_client.cookies.delete("session_id")
     await test_client.post(
-        "/login",
+        "/users/login",
         json={
             "nickname": "test_user_2",
             "password": "Test_password",
         },
     )
-    test_client.base_url = "http://test/posts"
 
-    response = await test_client.delete(url="/1")
+    response = await test_client.delete(url="/posts/1")
 
     assert response.status_code == 403
     assert response.json()["detail"] == "작성자 또는 관리자만 삭제할 수 있습니다"

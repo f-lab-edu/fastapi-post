@@ -18,26 +18,16 @@ DATABASE_URL = config.DATABASE_URL
 
 
 @pytest_asyncio.fixture
-async def test_client(test_session: AsyncSession):
-    async def override_get_session():
+async def test_client(test_session: AsyncSession) -> AsyncClient:
+    async def override_get_session() -> AsyncSession:
         yield test_session
 
     app.dependency_overrides[get_session] = override_get_session
-    client = AsyncClient(transport=ASGITransport(app=app), base_url="http://test/users")
-
+    client = AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
     hashed_password = hash_password(plain_password="Test_password")
     new_user = User(nickname="test_user", password=hashed_password)
     test_session.add(new_user)
     await test_session.commit()
-
-    await client.post(
-        "/login",
-        json={
-            "nickname": "test_user",
-            "password": "Test_password",
-        },
-    )
-    client.base_url = "http://test/comments"
 
     yield client
 
@@ -46,7 +36,9 @@ async def test_client(test_session: AsyncSession):
 
 @pytest.mark.asyncio
 @pytest.mark.create
-async def test_create_comment_ok(test_client: AsyncClient, test_session: AsyncSession):
+async def test_create_comment_ok(
+    test_client: AsyncClient, test_session: AsyncSession
+) -> None:
     # given
     user_result = await test_session.exec(
         select(User).where(User.nickname == "test_user")
@@ -56,10 +48,17 @@ async def test_create_comment_ok(test_client: AsyncClient, test_session: AsyncSe
         Post(author_id=user.id, title="test_title_1", content="test_content_1")
     )
     await test_session.commit()
+    await test_client.post(
+        "/users/login",
+        json={
+            "nickname": "test_user",
+            "password": "Test_password",
+        },
+    )
 
     # when
     response = await test_client.post(
-        "/",
+        "/comments/",
         json={
             "post_id": 1,
             "content": "test_comment",
@@ -81,7 +80,7 @@ async def test_create_comment_ok(test_client: AsyncClient, test_session: AsyncSe
 @pytest.mark.create
 async def test_create_comment_invalid_params(
     test_client: AsyncClient, test_session: AsyncSession
-):
+) -> None:
     # given
     user_result = await test_session.exec(
         select(User).where(User.nickname == "test_user")
@@ -91,10 +90,17 @@ async def test_create_comment_invalid_params(
         Post(author_id=user.id, title="test_title_1", content="test_content_1")
     )
     await test_session.commit()
+    await test_client.post(
+        "/users/login",
+        json={
+            "nickname": "test_user",
+            "password": "Test_password",
+        },
+    )
 
     # when
     response = await test_client.post(
-        url="/",
+        url="/comments/",
         json={
             "post_id": 1,
             "content": None,
@@ -115,7 +121,7 @@ async def test_create_comment_invalid_params(
 @pytest.mark.create
 async def test_create_comment_post_missing_field(
     test_client: AsyncClient, test_session: AsyncSession
-):
+) -> None:
     # given
     user_result = await test_session.exec(
         select(User).where(User.nickname == "test_user")
@@ -125,10 +131,17 @@ async def test_create_comment_post_missing_field(
         Post(author_id=user.id, title="test_title_1", content="test_content_1")
     )
     await test_session.commit()
+    await test_client.post(
+        "/users/login",
+        json={
+            "nickname": "test_user",
+            "password": "Test_password",
+        },
+    )
 
     # when
     response = await test_client.post(
-        url="/",
+        url="/comments/",
         json={"post_id": 1},
     )
 
@@ -144,10 +157,19 @@ async def test_create_comment_post_missing_field(
 
 @pytest.mark.asyncio
 @pytest.mark.create
-async def test_create_comment_post_not_exists(test_client: AsyncClient):
+async def test_create_comment_post_not_exists(test_client: AsyncClient) -> None:
+    # given
+    await test_client.post(
+        "/users/login",
+        json={
+            "nickname": "test_user",
+            "password": "Test_password",
+        },
+    )
+
     # when
     response = await test_client.post(
-        url="/",
+        url="/comments/",
         json={
             "post_id": 1,
             "content": "test_comment",
@@ -163,7 +185,7 @@ async def test_create_comment_post_not_exists(test_client: AsyncClient):
 @pytest.mark.comments
 async def test_get_comments_by_post_ok(
     test_client: AsyncClient, test_session: AsyncSession
-):
+) -> None:
     # given
     user_result = await test_session.exec(
         select(User).where(User.nickname == "test_user")
@@ -175,9 +197,16 @@ async def test_get_comments_by_post_ok(
     test_session.add(Comment(author_id=user.id, post_id=1, content="test_comment_1"))
     test_session.add(Comment(author_id=user.id, post_id=1, content="test_comment_2"))
     await test_session.commit()
+    await test_client.post(
+        "/users/login",
+        json={
+            "nickname": "test_user",
+            "password": "Test_password",
+        },
+    )
 
     # when
-    response = await test_client.get("?post_id=1")
+    response = await test_client.get("/comments/?post_id=1")
 
     # then
     assert response.status_code == 200
@@ -188,7 +217,7 @@ async def test_get_comments_by_post_ok(
 @pytest.mark.comments
 async def test_get_comments_by_post_empty_ok(
     test_client: AsyncClient, test_session: AsyncSession
-):
+) -> None:
     # given
     user_result = await test_session.exec(
         select(User).where(User.nickname == "test_user")
@@ -198,9 +227,16 @@ async def test_get_comments_by_post_empty_ok(
         Post(author_id=user.id, title="test_title_1", content="test_content_1")
     )
     await test_session.commit()
+    await test_client.post(
+        "/users/login",
+        json={
+            "nickname": "test_user",
+            "password": "Test_password",
+        },
+    )
 
     # when
-    response = await test_client.get("?post_id=1")
+    response = await test_client.get("/comments/?post_id=1")
 
     # then
     assert response.status_code == 200
@@ -211,7 +247,7 @@ async def test_get_comments_by_post_empty_ok(
 @pytest.mark.comments
 async def test_get_comments_by_user_ok(
     test_client: AsyncClient, test_session: AsyncSession
-):
+) -> None:
     # given
     user_result = await test_session.exec(
         select(User).where(User.nickname == "test_user")
@@ -223,9 +259,16 @@ async def test_get_comments_by_user_ok(
     test_session.add(Comment(author_id=user.id, post_id=1, content="test_comment_1"))
     test_session.add(Comment(author_id=user.id, post_id=1, content="test_comment_2"))
     await test_session.commit()
+    await test_client.post(
+        "/users/login",
+        json={
+            "nickname": "test_user",
+            "password": "Test_password",
+        },
+    )
 
     # when
-    response = await test_client.get("?user_id=1")
+    response = await test_client.get("/comments/?user_id=1")
 
     # then
     assert response.status_code == 200
@@ -236,7 +279,7 @@ async def test_get_comments_by_user_ok(
 @pytest.mark.comments
 async def test_get_comments_by_user_empty_ok(
     test_client: AsyncClient, test_session: AsyncSession
-):
+) -> None:
     # given
     user_result = await test_session.exec(
         select(User).where(User.nickname == "test_user")
@@ -246,9 +289,16 @@ async def test_get_comments_by_user_empty_ok(
         Post(author_id=user.id, title="test_title_1", content="test_content_1")
     )
     await test_session.commit()
+    await test_client.post(
+        "/users/login",
+        json={
+            "nickname": "test_user",
+            "password": "Test_password",
+        },
+    )
 
     # when
-    response = await test_client.get("?user_id=1")
+    response = await test_client.get("/comments/?user_id=1")
 
     # then
     assert response.status_code == 200
@@ -259,7 +309,7 @@ async def test_get_comments_by_user_empty_ok(
 @pytest.mark.comments
 async def test_get_comments_by_post_and_user_ok(
     test_client: AsyncClient, test_session: AsyncSession
-):
+) -> None:
     # given
     user_result = await test_session.exec(
         select(User).where(User.nickname == "test_user")
@@ -273,7 +323,7 @@ async def test_get_comments_by_post_and_user_ok(
     await test_session.commit()
 
     # when
-    response = await test_client.get("?post_id=1&user_id=1")
+    response = await test_client.get("/comments/?post_id=1&user_id=1")
 
     # then
     assert response.status_code == 200
@@ -284,7 +334,7 @@ async def test_get_comments_by_post_and_user_ok(
 @pytest.mark.comments
 async def test_get_comments_by_post_and_user_empty_ok(
     test_client: AsyncClient, test_session: AsyncSession
-):
+) -> None:
     # given
     user_result = await test_session.exec(
         select(User).where(User.nickname == "test_user")
@@ -296,7 +346,7 @@ async def test_get_comments_by_post_and_user_empty_ok(
     await test_session.commit()
 
     # when
-    response = await test_client.get("?post_id=1&user_id=1")
+    response = await test_client.get("/comments/?post_id=1&user_id=1")
 
     # then
     assert response.status_code == 200
@@ -305,7 +355,9 @@ async def test_get_comments_by_post_and_user_empty_ok(
 
 @pytest.mark.asyncio
 @pytest.mark.comments
-async def test_get_comments_ok(test_client: AsyncClient, test_session: AsyncSession):
+async def test_get_comments_ok(
+    test_client: AsyncClient, test_session: AsyncSession
+) -> None:
     # given
     user_result = await test_session.exec(
         select(User).where(User.nickname == "test_user")
@@ -319,7 +371,7 @@ async def test_get_comments_ok(test_client: AsyncClient, test_session: AsyncSess
     await test_session.commit()
 
     # when
-    response = await test_client.get("")
+    response = await test_client.get("/comments/")
 
     # then
     assert response.status_code == 200
@@ -328,7 +380,9 @@ async def test_get_comments_ok(test_client: AsyncClient, test_session: AsyncSess
 
 @pytest.mark.asyncio
 @pytest.mark.patch
-async def test_comment_patch_ok(test_client: AsyncClient, test_session: AsyncSession):
+async def test_comment_patch_ok(
+    test_client: AsyncClient, test_session: AsyncSession
+) -> None:
     # given
     user_result = await test_session.exec(
         select(User).where(User.nickname == "test_user")
@@ -339,10 +393,17 @@ async def test_comment_patch_ok(test_client: AsyncClient, test_session: AsyncSes
     )
     test_session.add(Comment(author_id=user.id, post_id=1, content="test_comment_1"))
     await test_session.commit()
+    await test_client.post(
+        "/users/login",
+        json={
+            "nickname": "test_user",
+            "password": "Test_password",
+        },
+    )
 
     # when
     response = await test_client.patch(
-        url="/1", json={"content": "test_comment_1_edit"}
+        url="/comments/1", json={"content": "test_comment_1_edit"}
     )
 
     # then
@@ -359,7 +420,7 @@ async def test_comment_patch_ok(test_client: AsyncClient, test_session: AsyncSes
 @pytest.mark.patch
 async def test_comment_patch_not_exists(
     test_client: AsyncClient, test_session: AsyncSession
-):
+) -> None:
     # given
     user_result = await test_session.exec(
         select(User).where(User.nickname == "test_user")
@@ -369,10 +430,17 @@ async def test_comment_patch_not_exists(
         Post(author_id=user.id, title="test_title_1", content="test_content_1")
     )
     await test_session.commit()
+    await test_client.post(
+        "/users/login",
+        json={
+            "nickname": "test_user",
+            "password": "Test_password",
+        },
+    )
 
     # when
     response = await test_client.patch(
-        url="/1", json={"content": "test_comment_1_edit"}
+        url="/comments/1", json={"content": "test_comment_1_edit"}
     )
 
     assert response.status_code == 400
@@ -383,7 +451,7 @@ async def test_comment_patch_not_exists(
 @pytest.mark.patch
 async def test_comment_patch_invalid_author(
     test_client: AsyncClient, test_session: AsyncSession
-):
+) -> None:
     # given
     user_result = await test_session.exec(
         select(User).where(User.nickname == "test_user")
@@ -398,22 +466,27 @@ async def test_comment_patch_invalid_author(
     new_user = User(nickname="test_user_2", password=hashed_password)
     test_session.add(new_user)
     await test_session.commit()
+    await test_client.post(
+        "/users/login",
+        json={
+            "nickname": "test_user",
+            "password": "Test_password",
+        },
+    )
 
     # when
     # 다른 아이디로 수정 시도. 세션아이디 변경 됨
-    test_client.base_url = "http://test/users"
     test_client.cookies.delete("session_id")
     await test_client.post(
-        "/login",
+        "/users/login",
         json={
             "nickname": "test_user_2",
             "password": "Test_password",
         },
     )
-    test_client.base_url = "http://test/comments"
 
     response = await test_client.patch(
-        url="/1", json={"content": "test_comment_1_edit"}
+        url="/comments/1", json={"content": "test_comment_1_edit"}
     )
 
     assert response.status_code == 403
@@ -424,7 +497,7 @@ async def test_comment_patch_invalid_author(
 @pytest.mark.patch
 async def test_comment_patch_admin_role(
     test_client: AsyncClient, test_session: AsyncSession
-):
+) -> None:
     # given
     user_result = await test_session.exec(
         select(User).where(User.nickname == "test_user")
@@ -439,22 +512,27 @@ async def test_comment_patch_admin_role(
     new_user = User(nickname="test_user_2", password=hashed_password, role="admin")
     test_session.add(new_user)
     await test_session.commit()
+    await test_client.post(
+        "/users/login",
+        json={
+            "nickname": "test_user",
+            "password": "Test_password",
+        },
+    )
 
     # when
     # admin role로 수정 시도. 세션아이디 변경 됨
-    test_client.base_url = "http://test/users"
     test_client.cookies.delete("session_id")
     await test_client.post(
-        "/login",
+        "/users/login",
         json={
             "nickname": "test_user_2",
             "password": "Test_password",
         },
     )
-    test_client.base_url = "http://test/comments"
 
     response = await test_client.patch(
-        url="/1", json={"content": "test_comment_1_edit"}
+        url="/comments/1", json={"content": "test_comment_1_edit"}
     )
 
     # then
@@ -469,7 +547,9 @@ async def test_comment_patch_admin_role(
 
 @pytest.mark.asyncio
 @pytest.mark.delete
-async def test_comment_delete_ok(test_client: AsyncClient, test_session: AsyncSession):
+async def test_comment_delete_ok(
+    test_client: AsyncClient, test_session: AsyncSession
+) -> None:
     # given
     user_result = await test_session.exec(
         select(User).where(User.nickname == "test_user")
@@ -480,9 +560,16 @@ async def test_comment_delete_ok(test_client: AsyncClient, test_session: AsyncSe
     )
     test_session.add(Comment(author_id=user.id, post_id=1, content="test_comment_1"))
     await test_session.commit()
+    await test_client.post(
+        "/users/login",
+        json={
+            "nickname": "test_user",
+            "password": "Test_password",
+        },
+    )
 
     # when
-    delete_response = await test_client.delete(url="/1")
+    delete_response = await test_client.delete(url="/comments/1")
 
     # then
     assert delete_response.status_code == 204
@@ -498,7 +585,7 @@ async def test_comment_delete_ok(test_client: AsyncClient, test_session: AsyncSe
 @pytest.mark.delete
 async def test_comment_delete_not_exists(
     test_client: AsyncClient, test_session: AsyncSession
-):
+) -> None:
     # given
     user_result = await test_session.exec(
         select(User).where(User.nickname == "test_user")
@@ -508,9 +595,16 @@ async def test_comment_delete_not_exists(
         Post(author_id=user.id, title="test_title_1", content="test_content_1")
     )
     await test_session.commit()
+    await test_client.post(
+        "/users/login",
+        json={
+            "nickname": "test_user",
+            "password": "Test_password",
+        },
+    )
 
     # when
-    response = await test_client.delete(url="/1")
+    response = await test_client.delete(url="/comments/1")
 
     assert response.status_code == 400
     assert response.json()["detail"] == "존재하지 않는 코멘트입니다"
@@ -520,7 +614,7 @@ async def test_comment_delete_not_exists(
 @pytest.mark.delete
 async def test_comment_delete_invalid_author(
     test_client: AsyncClient, test_session: AsyncSession
-):
+) -> None:
     # given
     user_result = await test_session.exec(
         select(User).where(User.nickname == "test_user")
@@ -530,26 +624,30 @@ async def test_comment_delete_invalid_author(
         Post(author_id=user.id, title="test_title_1", content="test_content_1")
     )
     test_session.add(Comment(author_id=user.id, post_id=1, content="test_comment_1"))
-
     hashed_password = hash_password(plain_password="Test_password")
     new_user = User(nickname="test_user_2", password=hashed_password)
     test_session.add(new_user)
     await test_session.commit()
+    await test_client.post(
+        "/users/login",
+        json={
+            "nickname": "test_user",
+            "password": "Test_password",
+        },
+    )
 
     # when
     # 다른 아이디로 수정 시도. 세션아이디 변경 됨
-    test_client.base_url = "http://test/users"
     test_client.cookies.delete("session_id")
     await test_client.post(
-        "/login",
+        "/users/login",
         json={
             "nickname": "test_user_2",
             "password": "Test_password",
         },
     )
-    test_client.base_url = "http://test/comments"
 
-    response = await test_client.delete(url="/1")
+    response = await test_client.delete(url="/comments/1")
 
     assert response.status_code == 403
     assert response.json()["detail"] == "작성자 또는 관리자만 삭제할 수 있습니다"
@@ -559,7 +657,7 @@ async def test_comment_delete_invalid_author(
 @pytest.mark.delete
 async def test_comment_delete_admin_role(
     test_client: AsyncClient, test_session: AsyncSession
-):
+) -> None:
     # given
     user_result = await test_session.exec(
         select(User).where(User.nickname == "test_user")
@@ -569,26 +667,30 @@ async def test_comment_delete_admin_role(
         Post(author_id=user.id, title="test_title_1", content="test_content_1")
     )
     test_session.add(Comment(author_id=user.id, post_id=1, content="test_comment_1"))
-
     hashed_password = hash_password(plain_password="Test_password")
     new_user = User(nickname="test_user_2", password=hashed_password, role="admin")
     test_session.add(new_user)
     await test_session.commit()
+    await test_client.post(
+        "/users/login",
+        json={
+            "nickname": "test_user",
+            "password": "Test_password",
+        },
+    )
 
     # when
     # admin role로 수정 시도. 세션아이디 변경 됨
-    test_client.base_url = "http://test/users"
     test_client.cookies.delete("session_id")
     await test_client.post(
-        "/login",
+        "/users/login",
         json={
             "nickname": "test_user_2",
             "password": "Test_password",
         },
     )
-    test_client.base_url = "http://test/comments"
 
-    response = await test_client.delete(url="/1")
+    response = await test_client.delete(url="/comments/1")
 
     # then
     assert response.status_code == 204

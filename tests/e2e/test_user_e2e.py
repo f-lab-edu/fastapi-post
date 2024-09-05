@@ -15,23 +15,27 @@ DATABASE_URL = config.DATABASE_URL
 
 
 @pytest.fixture
-def test_client(test_session: AsyncSession):
-    async def override_get_session():
+def test_client(test_session: AsyncSession) -> AsyncClient:
+    async def override_get_session() -> AsyncSession:
         yield test_session
 
     app.dependency_overrides[get_session] = override_get_session
 
-    client = AsyncClient(transport=ASGITransport(app=app), base_url="http://test/users")
+    client = AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
+
     yield client
+
     app.dependency_overrides.clear()
 
 
 @pytest.mark.asyncio
 @pytest.mark.create
-async def test_signup_user_ok(test_client: AsyncClient, test_session: AsyncSession):
+async def test_signup_user_ok(
+    test_client: AsyncClient, test_session: AsyncSession
+) -> None:
     # when
     response = await test_client.post(
-        "/",
+        "/users/",
         json={
             "nickname": "test_user",
             "password": "Test_password",
@@ -51,10 +55,10 @@ async def test_signup_user_ok(test_client: AsyncClient, test_session: AsyncSessi
 @pytest.mark.create
 async def test_signup_user_not_upper(
     test_client: AsyncClient, test_session: AsyncSession
-):
+) -> None:
     # when
     response = await test_client.post(
-        "/",
+        "/users/",
         json={
             "nickname": "test_user",
             "password": "test_password",
@@ -74,10 +78,10 @@ async def test_signup_user_not_upper(
 @pytest.mark.create
 async def test_signup_user_invalid_params(
     test_client: AsyncClient, test_session: AsyncSession
-):
+) -> None:
     # when
     response = await test_client.post(
-        "/",
+        "/users/",
         json={
             "nickname": "",
             "password": "",
@@ -96,7 +100,7 @@ async def test_signup_user_invalid_params(
 @pytest.mark.create
 async def test_signup_user_duplicate(
     test_client: AsyncClient, test_session: AsyncSession
-):
+) -> None:
     # given
     hashed_password = hash_password(plain_password="Test_password")
     new_user = User(nickname="test_user", password=hashed_password)
@@ -105,7 +109,7 @@ async def test_signup_user_duplicate(
 
     # when
     response = await test_client.post(
-        "/",
+        "/users/",
         json={
             "nickname": "test_user",
             "password": "Test_password",
@@ -123,7 +127,7 @@ async def test_signup_user_duplicate(
 
 @pytest.mark.asyncio
 @pytest.mark.login
-async def test_login_ok(test_client: AsyncClient, test_session: AsyncSession):
+async def test_login_ok(test_client: AsyncClient, test_session: AsyncSession) -> None:
     # given
     hashed_password = hash_password(plain_password="Test_password")
     new_user = User(nickname="test_user", password=hashed_password)
@@ -132,7 +136,7 @@ async def test_login_ok(test_client: AsyncClient, test_session: AsyncSession):
 
     # when
     response = await test_client.post(
-        "/login",
+        "/users/login",
         json={
             "nickname": "test_user",
             "password": "Test_password",
@@ -148,7 +152,7 @@ async def test_login_ok(test_client: AsyncClient, test_session: AsyncSession):
 @pytest.mark.login
 async def test_login_invalid_nikcname(
     test_client: AsyncClient, test_session: AsyncSession
-):
+) -> None:
     # given
     hashed_password = hash_password(plain_password="Test_password")
     new_user = User(nickname="test_user", password=hashed_password)
@@ -157,7 +161,7 @@ async def test_login_invalid_nikcname(
 
     # when
     response = await test_client.post(
-        "/login",
+        "/users/login",
         json={
             "nickname": "invalid_user",
             "password": "Test_password",
@@ -173,7 +177,7 @@ async def test_login_invalid_nikcname(
 @pytest.mark.login
 async def test_login_invalid_password(
     test_client: AsyncClient, test_session: AsyncSession
-):
+) -> None:
     # given
     hashed_password = hash_password(plain_password="Test_password")
     new_user = User(nickname="test_user", password=hashed_password)
@@ -182,7 +186,7 @@ async def test_login_invalid_password(
 
     # when
     response = await test_client.post(
-        "/login",
+        "/users/login",
         json={
             "nickname": "test_user",
             "password": "invalid_password",
@@ -196,7 +200,7 @@ async def test_login_invalid_password(
 
 @pytest.mark.asyncio
 @pytest.mark.logout
-async def test_logout_ok(test_client: AsyncClient, test_session: AsyncSession):
+async def test_logout_ok(test_client: AsyncClient, test_session: AsyncSession) -> None:
     # given
     hashed_password = hash_password(plain_password="Test_password")
     new_user = User(nickname="test_user", password=hashed_password)
@@ -205,13 +209,13 @@ async def test_logout_ok(test_client: AsyncClient, test_session: AsyncSession):
 
     # when
     await test_client.post(
-        "/login",
+        "/users/login",
         json={
             "nickname": "test_user",
             "password": "Test_password",
         },
     )
-    response = await test_client.post("/logout")
+    response = await test_client.post("/users/logout")
 
     # then
     assert response.status_code == 204
@@ -221,7 +225,7 @@ async def test_logout_ok(test_client: AsyncClient, test_session: AsyncSession):
 @pytest.mark.logout
 async def test_logout_invalid_session_id(
     test_client: AsyncClient, test_session: AsyncSession
-):
+) -> None:
     # given
     hashed_password = hash_password(plain_password="Test_password")
     new_user = User(nickname="test_user", password=hashed_password)
@@ -230,14 +234,14 @@ async def test_logout_invalid_session_id(
 
     # when
     response = await test_client.post(
-        "/login",
+        "/users/login",
         json={
             "nickname": "test_user",
             "password": "Test_password",
         },
     )
     test_client.cookies = {"session_id": "invalid_session_id"}
-    response = await test_client.post("/logout")
+    response = await test_client.post("/users/logout")
 
     # then
     assert response.status_code == 400

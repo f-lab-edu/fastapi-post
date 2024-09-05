@@ -9,7 +9,7 @@ from src.servicies.post import PostService
 
 
 @pytest.fixture
-def mock_session():
+def mock_session() -> AsyncMock:
     session = AsyncMock(spec=AsyncSession)
     session.add = MagicMock()
     session.commit = AsyncMock()
@@ -19,13 +19,13 @@ def mock_session():
 
 
 @pytest.fixture
-def post_service(mock_session):
+def post_service(mock_session) -> PostService:
     return PostService(session=mock_session)
 
 
 @pytest.mark.asyncio
 @pytest.mark.unit
-async def test_create_post(mocker, mock_session, post_service):
+async def test_create_post(mocker, mock_session, post_service) -> None:
     # Given
     mocker.patch("src.domains.comment.Comment")
     user_id = 1
@@ -49,7 +49,7 @@ async def test_create_post(mocker, mock_session, post_service):
 
 @pytest.mark.asyncio
 @pytest.mark.unit
-async def test_get_posts(mock_session, post_service):
+async def test_get_posts(mock_session: AsyncMock, post_service: PostService) -> None:
     # Given
     mock_posts = [
         (
@@ -85,7 +85,7 @@ async def test_get_posts(mock_session, post_service):
 
 @pytest.mark.asyncio
 @pytest.mark.unit
-async def test_get_post(mock_session, post_service):
+async def test_get_post(mock_session, post_service) -> None:
     # Given
     mock_post = (
         Post(id=1, title="테스트 제목 1", content="테스트 내용 1"),
@@ -110,7 +110,7 @@ async def test_get_post(mock_session, post_service):
 
 @pytest.mark.asyncio
 @pytest.mark.unit
-async def test_edit_post(mock_session, post_service):
+async def test_edit_post(mock_session, post_service) -> None:
     # Given
     mock_post = Post(id=1, title="테스트 제목 1", content="테스트 내용 1")
 
@@ -130,7 +130,7 @@ async def test_edit_post(mock_session, post_service):
 
 @pytest.mark.asyncio
 @pytest.mark.unit
-async def test_delete_post(mock_session, post_service):
+async def test_delete_post(mock_session, post_service) -> None:
     # Given
     mock_post = Post(id=1, title="테스트 제목 1", content="테스트 내용 1")
 
