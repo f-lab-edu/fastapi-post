@@ -8,5 +8,7 @@ router = APIRouter(tags=["common"])
     status_code=status.HTTP_200_OK,
 )
 async def health() -> None:
-    # health check
+    """
+    health check
+    """
     return

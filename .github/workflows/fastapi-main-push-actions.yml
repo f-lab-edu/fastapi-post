@@ -64,6 +64,7 @@ jobs:
         username: ${{ secrets.GCP_USERNAME }}
         key: ${{ secrets.GCP_SSH_KEY }}
         script: |
+          git pull upstream master
           sudo docker-compose -f ~/fastapi-post/docker-compose.hub.yml down 
           sudo docker pull ksg9482/fastapi-post:latest
           sudo docker rmi $(docker images -f "dangling=true" -q)

@@ -23,6 +23,7 @@ repos:
       additional_dependencies:
         - "pydantic==v2.8.2"
         - "sqlmodel==0.0.19"
+        - "redis==5.0.8"
       args:
         - --config-file=pyproject.toml
 
