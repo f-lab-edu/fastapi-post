@@ -8,6 +8,11 @@
 * poetry
 
 ## Installation
+저장소 복사
+```
+git clone https://github.com/f-lab-edu/fastapi-post.git
+```
+
 가상환경 설정
 ```
 poetry install
@@ -18,28 +23,56 @@ poetry install
 poetry shell
 ```
 
-## Docker
+## Start
 * 앱 이미지 생성
 ```
-docker build --tag fastapi-post:1.0 .
+docker build --tag fastapi-post:latest
 ```
 * docker-compose 실행
 ```
-docker-compose up
+docker-compose up -d
 ```
 * docker-compose 종료
 ```
 docker-compose down
 ```
-## Start
-서버 실행
-* Dev
+## Development
+* MySQL 다운로드
 ```
-uvicorn main:app --reload
+docker pull mysql:lts
 ```
-* Prod
+
+* MySQL 실행
 ```
-uvicorn main:app
+docker run -d --name mysql -p 3306:3306 -e MYSQL_DATABASE=exampledb -e MYSQL_USER=user -e MYSQL_PASSWORD=password -e MYSQL_ROOT_PASSWORD=root mysql:lts
+```
+
+* Redis 다운로드
+```
+docker pull Redis:alpine
+```
+
+* Redis 실행
+```
+docker run -d --name redis -p 6379:6379 redis:alpine
+```
+* 환경변수 설정
+```
+export PYTHONPATH="./"
+export DATABASE_URL=mysql+aiomysql://user:password@localhost:3306/exampledb
+export REDIS_URL=redis://localhost
+```
+OR
+* .env
+```
+PYTHONPATH="./"
+DATABASE_URL="mysql+aiomysql://user:password@127.0.0.1:3306/exampledb"
+REDIS_URL="redis://localhost"
+```
+
+* 서버 실행
+```
+uvicorn src.main:app --host localhost --port 8000
 ```
 
 ## API
