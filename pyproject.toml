@@ -33,6 +33,7 @@ types-passlib = "^1.7.7.20240819"
 pydantic = "^2.8.2"
 pytest-mock = "^3.14.0"
 testcontainers = {extras = ["mysql"], version = "^4.8.0"}
+aioredis = "2.0.0"
 
 
 [build-system]
