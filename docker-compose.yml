@@ -4,7 +4,7 @@ services:
     build: 
       context: .
       dockerfile: Dockerfile
-    image: ksg9482/fastapi-post:latest
+    image: ksg9482/fastapi-post:24.09.04
     ports:
       - "80:8000" 
     depends_on:
