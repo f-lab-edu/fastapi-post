@@ -1,6 +1,10 @@
+import json
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from redis.asyncio import Redis
 
 from src.auth import get_current_user
+from src.database import get_redis
 from src.domains.user import Role
 from src.schemas.auth import SessionContent
 from src.schemas.comment import (
@@ -16,9 +20,6 @@ from src.servicies.post import PostService
 router = APIRouter(prefix="/comments", tags=["comments"])
 
 
-# post_id로 바로 부르는건 햇갈릴거 같다. commets/1이 1번 코멘트가 아니라 post1에 코멘트 다는 거라고 직관적으로 모름
-# POST /comments?post_id=1 이게 나을듯
-# POST /comments/list?post_id=1
 @router.post(
     "/",
     status_code=status.HTTP_201_CREATED,
@@ -28,6 +29,7 @@ async def create_comment(
     request: CreateCommentRequest,
     comment_service: CommentService = Depends(CommentService),
     post_service: PostService = Depends(PostService),
+    redis: Redis = Depends(get_redis),
     current_user: SessionContent = Depends(get_current_user),
 ) -> CreateCommentResponse:
     user_id = current_user.id
@@ -42,7 +44,7 @@ async def create_comment(
         user_id=user_id, post_id=request.post_id, content=request.content
     )
 
-    return CreateCommentResponse(
+    response = CreateCommentResponse(
         id=new_comment.id,  # type: ignore
         author_id=new_comment.author_id,
         post_id=new_comment.post_id,
@@ -50,6 +52,13 @@ async def create_comment(
         created_at=new_comment.created_at,
         updated_at=new_comment.updated_at,
     )
+
+    try:
+        await redis.delete("comments:*")
+    except:
+        pass
+
+    return response
 
 
 @router.get(
@@ -61,11 +70,19 @@ async def get_comments(
     post_id: int | None = None,
     user_id: int | None = None,
     page: int = Query(1),
+    redis: Redis = Depends(get_redis),
     service: CommentService = Depends(CommentService),
 ) -> CommentsResponse:
-    comments = await service.get_comments(post_id=post_id, user_id=user_id, page=page)
+    cache_key = f"comments:post_id:{post_id}:user_id:{user_id}:page:{page}"
+    try:
+        cached_data = await redis.get(cache_key)
+        if cached_data:
+            return CommentsResponse(**json.loads(cached_data))
+    except:
+        pass
 
-    return CommentsResponse(
+    comments = await service.get_comments(post_id=post_id, user_id=user_id, page=page)
+    response = CommentsResponse(
         comments=[
             CommentResponse(
                 id=comment.id,  # type: ignore
@@ -78,6 +95,14 @@ async def get_comments(
             for comment in comments
         ]
     )
+    try:
+        await redis.setex(
+            name=cache_key, time=3600, value=json.dumps(response.model_dump())
+        )
+    except:
+        pass
+
+    return response
 
 
 @router.patch("/{comment_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -85,18 +110,17 @@ async def edit_comment(
     comment_id: int,
     request: EditComment,
     service: CommentService = Depends(CommentService),
+    redis: Redis = Depends(get_redis),
     current_user: SessionContent = Depends(get_current_user),
 ) -> None:
     user_id = current_user.id
     user_role = current_user.role
 
     comment = await service.get_comment(comment_id)
-
     if not comment:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="존재하지 않는 코멘트입니다"
         )
-
     if (not comment.author_id == user_id) and (not user_role == Role.admin):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -105,11 +129,17 @@ async def edit_comment(
 
     await service.edit_comment(comment=comment, content=request.content)
 
+    try:
+        await redis.delete("comments:*")
+    except:
+        pass
+
 
 @router.delete("/{comment_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_comment(
     comment_id: int,
     service: CommentService = Depends(CommentService),
+    redis: Redis = Depends(get_redis),
     current_user: SessionContent = Depends(get_current_user),
 ) -> None:
     user_id = current_user.id
@@ -129,3 +159,8 @@ async def delete_comment(
         )
 
     await service.delete_comment(comment)
+
+    try:
+        await redis.delete("comments:*")
+    except:
+        pass
