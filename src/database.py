@@ -15,7 +15,7 @@ engine = AsyncEngine(create_engine(url=DATABASE_URL, pool_size=20, max_overflow=
 @asynccontextmanager
 async def db_init(app: FastAPI):
     async with engine.begin() as conn:
-        await conn.run_sync(SQLModel.metadata.drop_all)
+        # await conn.run_sync(SQLModel.metadata.drop_all)
         await conn.run_sync(SQLModel.metadata.create_all)
     yield
 

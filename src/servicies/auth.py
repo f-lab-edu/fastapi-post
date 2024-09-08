@@ -42,6 +42,6 @@ class AuthService:
 
         return session_id
 
-    async def delete_session(self, login_session: LoginSession):
+    async def delete_session(self, login_session: LoginSession) -> None:
         await self.session.delete(login_session)
         await self.session.commit()

@@ -65,6 +65,6 @@ class PostService:
         self.session.add(post)
         await self.session.commit()
 
-    async def delete_post(self, post: Post):
+    async def delete_post(self, post: Post) -> None:
         await self.session.delete(post)
         await self.session.commit()

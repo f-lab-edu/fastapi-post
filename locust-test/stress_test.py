@@ -7,7 +7,7 @@ class WebsiteUser(HttpUser):
     host = HOST
 
     @task
-    def test(self):
+    def test(self) -> None:
         with self.client.get("/", name="stress-test", catch_response=True) as response:
             None
 

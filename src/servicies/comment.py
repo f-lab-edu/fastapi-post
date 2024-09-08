@@ -67,6 +67,6 @@ class CommentService:
         self.session.add(comment)
         await self.session.commit()
 
-    async def delete_comment(self, comment: Comment):
+    async def delete_comment(self, comment: Comment) -> None:
         await self.session.delete(comment)
         await self.session.commit()
