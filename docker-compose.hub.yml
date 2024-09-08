@@ -4,7 +4,7 @@ services:
     build: 
       context: .
       dockerfile: Dockerfile
-    image: ksg9482/fastapi-post:latest
+    image: ksg9482/fastapi-post:24.09.04
     ports:
       - "80:8000" 
     depends_on:
@@ -14,6 +14,7 @@ services:
       - app-network
     environment:
       - DATABASE_URL=mysql+aiomysql://user:password@db:3306/exampledb
+      - REDIS_URL=redis://localhost
       - PYTHONPATH="./"
 
   db:
@@ -44,5 +45,3 @@ networks:
 
 volumes:
   mysqldata:
-
-# docker-compose up --build
