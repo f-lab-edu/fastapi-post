@@ -44,5 +44,3 @@ networks:
 
 volumes:
   mysqldata:
-
-# docker-compose up --build
