@@ -50,6 +50,7 @@ jobs:
         poetry run pytest
     - name: Docker build
       run: |
+        # TODO: shell command 써서 버전 동적으로 주입하기
         docker build -t ksg9482/fastapi-post:24.09.04 .
     - name: Login docker hub
       uses: docker/login-action@v2
