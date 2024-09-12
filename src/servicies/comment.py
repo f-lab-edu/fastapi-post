@@ -29,25 +29,12 @@ class CommentService:
         orm_query = select(Comment)
 
         if post_id:
-            orm_query.where(Comment.post_id == post_id)
+            orm_query = orm_query.where(Comment.post_id == post_id)
         if user_id:
-            orm_query.where(Comment.author_id == user_id)
-        orm_query.offset(offset).limit(self.items_per_page)
+            orm_query = orm_query.where(Comment.author_id == user_id)
+        orm_query = orm_query.offset(offset).limit(self.items_per_page)
 
         result = await self.session.exec(orm_query)
-        comments = result.all()
-
-        return list(comments)
-
-    async def get_comments_by_user(self, user_id: int, page: int) -> List[Comment]:
-        offset = (page - 1) * self.items_per_page
-
-        result = await self.session.exec(
-            select(Comment)
-            .where(Comment.author_id == user_id)
-            .offset(offset)
-            .limit(self.items_per_page)
-        )
         comments = result.all()
 
         return list(comments)
