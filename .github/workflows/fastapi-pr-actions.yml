@@ -29,19 +29,15 @@ jobs:
     - name: Lint with isort
       run: |
         poetry run isort . --check-only --diff
-      continue-on-error: true
     - name: Lint with black
       run: |
         poetry run black --check --diff .
-      continue-on-error: true
     - name: Lint with pycln
       run: |
         poetry run pycln --check .
-      continue-on-error: true
     - name: Lint with mypy
       run: |
         poetry run mypy .
-      continue-on-error: true
     - name: Test with pytest
       run: |
         poetry run pytest
