@@ -1,7 +1,8 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from redis import Redis, asyncio as aioredis
+from redis import Redis
+from redis import asyncio as aioredis
 from sqlalchemy.ext.asyncio import AsyncEngine
 from sqlalchemy.orm import sessionmaker
 from sqlmodel import SQLModel, create_engine
@@ -34,8 +35,8 @@ async def get_session() -> AsyncSession:  # type: ignore
         yield session
 
 
-async def get_redis() -> (Redis | None):
+async def get_redis() -> Redis | None:
     if redis.connection:
-        return redis # type: ignore
+        return redis  # type: ignore
     else:
         return None
