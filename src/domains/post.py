@@ -18,6 +18,7 @@ class Post(SQLModel, table=True):  # type: ignore
     user: User = Relationship(back_populates="posts")
 
     comments: list["Comment"] = Relationship(back_populates="post")  # type: ignore
+    likes: list["Like"] = Relationship(back_populates="post")  # type: ignore
 
     @property
     def author(self):
