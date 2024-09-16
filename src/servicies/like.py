@@ -1,4 +1,5 @@
 from abc import *
+from typing import List
 
 from fastapi import Depends
 from sqlmodel import select
@@ -6,6 +7,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.database import get_session
 from src.domains.like import Like
+from src.domains.user import User
 
 
 class LikeServiceBase(metaclass=ABCMeta):
@@ -17,6 +19,10 @@ class LikeServiceBase(metaclass=ABCMeta):
     async def get_like_by_user_and_post(
         self, user_id: int, post_id: int
     ) -> Like | None:
+        pass
+
+    @abstractmethod
+    async def get_like_users(self, post_id: int | None = None) -> List[User]:
         pass
 
 
@@ -42,3 +48,12 @@ class LikeService(LikeServiceBase):
         like = result.first()
 
         return like
+
+    async def get_like_users(self, post_id: int | None = None) -> List[User]:
+        orm_query = select(User).join(Like)
+        if post_id:
+            orm_query = orm_query.where(Like.post_id == post_id)
+        result = await self.session.exec(orm_query)
+        like_users = result.all()
+
+        return list(like_users)

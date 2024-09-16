@@ -2,7 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from src.auth import get_current_user
 from src.schemas.auth import SessionContent
-from src.schemas.like import CreateLikeRequest, CreateLikeResponse
+from src.schemas.like import (
+    CreateLikeRequest,
+    CreateLikeResponse,
+    GetLikeUsersResponse,
+    LikeUserResponse,
+)
 from src.servicies.like import LikeService, LikeServiceBase
 from src.servicies.post import PostService
 
@@ -44,6 +49,42 @@ async def create_like(
         user_id=new_like.user_id,
         post_id=new_like.post_id,
         created_at=new_like.created_at,
+    )
+
+    return response
+
+
+@router.get(
+    "/",
+    status_code=status.HTTP_200_OK,
+    response_model=GetLikeUsersResponse,
+)
+async def get_like_users(
+    post_id: int | None = None,
+    like_service: LikeServiceBase = Depends(LikeService),
+    post_service: PostService = Depends(PostService),
+) -> GetLikeUsersResponse:
+
+    if post_id:
+        post = await post_service.get_post(post_id)
+        if not post:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="존재하지 않는 포스트입니다",
+            )
+
+    users = await like_service.get_like_users(post_id=post_id)
+    response = GetLikeUsersResponse(
+        users=[
+            LikeUserResponse(
+                id=user.id,  # type: ignore
+                nickname=user.nickname,
+                role=user.role,
+                created_at=user.created_at,
+                updated_at=user.updated_at,
+            )
+            for user in users
+        ]
     )
 
     return response
