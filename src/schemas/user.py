@@ -1,4 +1,5 @@
 import re
+from typing import List
 
 from fastapi import HTTPException, status
 from pydantic import BaseModel, Field, field_validator
@@ -37,3 +38,13 @@ class LoginRequest(BaseModel):
 
 class LoginResponse(BaseModel):
     session_id: str
+
+
+class NotificationsResponseBody(BaseModel):
+    id: int
+    user_id: int
+    post_id: int
+
+
+class NotificationsResponse(BaseModel):
+    notifications: List[NotificationsResponseBody]

@@ -1,9 +1,12 @@
+from typing import List
+
 from fastapi import Depends
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.auth import hash_password
 from src.database import get_session
+from src.domains.notification import Notification
 from src.domains.user import User
 
 
@@ -23,6 +26,12 @@ class UserService:
 
     async def get_user_by_nickname(self, nickname: str) -> User | None:
         result = await self.session.exec(select(User).where(User.nickname == nickname))
-        user: User | None = result.first()
+        user = result.first()
 
         return user
+
+    async def get_user_notification(self, user_id: int) -> List[Notification]:
+        result = await self.session.exec(select(Notification).where(User.id == user_id))
+        notifications = result.all()
+
+        return list(notifications)

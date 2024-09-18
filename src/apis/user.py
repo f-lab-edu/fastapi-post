@@ -3,9 +3,16 @@ from datetime import datetime, timedelta
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
 from ulid import ULID
 
-from src.auth import verify_password
+from src.auth import get_current_user, verify_password
 from src.schemas.auth import SessionContent
-from src.schemas.user import LoginRequest, LoginResponse, SignUpRequest, SignUpResponse
+from src.schemas.user import (
+    LoginRequest,
+    LoginResponse,
+    NotificationsResponse,
+    NotificationsResponseBody,
+    SignUpRequest,
+    SignUpResponse,
+)
 from src.servicies.auth import AuthService
 from src.servicies.user import UserService
 
@@ -93,3 +100,25 @@ async def logout(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="존재하지 않는 세션입니다"
         )
+
+
+@router.get("/notifications", status_code=status.HTTP_200_OK)
+async def user_notifications(
+    service: UserService = Depends(UserService),
+    current_user: SessionContent = Depends(get_current_user),
+) -> NotificationsResponse:
+    user_id = current_user.id
+
+    notifications = await service.get_user_notification(user_id=user_id)
+    response = NotificationsResponse(
+        notifications=[
+            NotificationsResponseBody(
+                id=notification.id,  # type: ignore
+                post_id=notification.post_id,
+                user_id=notification.user_id,
+            )
+            for notification in notifications
+        ]
+    )
+
+    return response

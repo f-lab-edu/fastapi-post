@@ -7,6 +7,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.database import get_session
 from src.domains.like import Like
+from src.domains.notification import Notification
 from src.domains.user import User
 
 
@@ -40,11 +41,13 @@ class LikeService(LikeServiceBase):
 
     async def create_like(self, user_id: int, post_id: int) -> Like:
         new_like = Like(user_id=user_id, post_id=post_id)
-
         self.session.add(new_like)
         await self.session.commit()
         await self.session.refresh(new_like)
-
+        new_notification = Notification(user_id=user_id, post_id=post_id)
+        self.session.add(new_notification)
+        await self.session.commit()
+        await self.session.refresh(new_like)
         return new_like
 
     async def get_like_by_user_and_post(

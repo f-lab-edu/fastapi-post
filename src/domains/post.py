@@ -24,6 +24,8 @@ class Post(SQLModel, table=True):  # type: ignore
     post_view_id: int = Field(foreign_key="postview.id")
     post_view: PostView = Relationship(back_populates="post")
 
+    notifications: list["Notification"] = Relationship(back_populates="post")  # type: ignore
+
     @property
     def author(self):
         return self._author
