@@ -61,7 +61,6 @@ class LikeService(LikeServiceBase):
         orm_query = select(Like).where(Like.id == like_id)
         if user_id:
             orm_query = orm_query.where(Like.user_id == user_id)
-        print(orm_query)
         result = await self.session.exec(orm_query)
         like = result.first()
 

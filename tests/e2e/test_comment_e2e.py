@@ -11,6 +11,7 @@ from src.config import config
 from src.database import get_session
 from src.domains.comment import Comment
 from src.domains.post import Post
+from src.domains.post_view import PostView
 from src.domains.user import User
 from src.main import app
 
@@ -44,8 +45,14 @@ async def test_create_comment_ok(
         select(User).where(User.nickname == "test_user")
     )
     user = user_result.first()
+    test_session.add(PostView(id=1))
     test_session.add(
-        Post(author_id=user.id, title="test_title_1", content="test_content_1")
+        Post(
+            author_id=user.id,
+            title="test_title_1",
+            content="test_content_1",
+            post_view_id=1,
+        )
     )
     await test_session.commit()
     await test_client.post(
@@ -86,8 +93,14 @@ async def test_create_comment_invalid_params(
         select(User).where(User.nickname == "test_user")
     )
     user = user_result.first()
+    test_session.add(PostView(id=1))
     test_session.add(
-        Post(author_id=user.id, title="test_title_1", content="test_content_1")
+        Post(
+            author_id=user.id,
+            title="test_title_1",
+            content="test_content_1",
+            post_view_id=1,
+        )
     )
     await test_session.commit()
     await test_client.post(
@@ -127,8 +140,14 @@ async def test_create_comment_post_missing_field(
         select(User).where(User.nickname == "test_user")
     )
     user = user_result.first()
+    test_session.add(PostView(id=1))
     test_session.add(
-        Post(author_id=user.id, title="test_title_1", content="test_content_1")
+        Post(
+            author_id=user.id,
+            title="test_title_1",
+            content="test_content_1",
+            post_view_id=1,
+        )
     )
     await test_session.commit()
     await test_client.post(
@@ -191,8 +210,14 @@ async def test_get_comments_by_post_ok(
         select(User).where(User.nickname == "test_user")
     )
     user = user_result.first()
+    test_session.add(PostView(id=1))
     test_session.add(
-        Post(author_id=user.id, title="test_title_1", content="test_content_1")
+        Post(
+            author_id=user.id,
+            title="test_title_1",
+            content="test_content_1",
+            post_view_id=1,
+        )
     )
     test_session.add(Comment(author_id=user.id, post_id=1, content="test_comment_1"))
     test_session.add(Comment(author_id=user.id, post_id=1, content="test_comment_2"))
@@ -223,8 +248,14 @@ async def test_get_comments_by_post_empty_ok(
         select(User).where(User.nickname == "test_user")
     )
     user = user_result.first()
+    test_session.add(PostView(id=1))
     test_session.add(
-        Post(author_id=user.id, title="test_title_1", content="test_content_1")
+        Post(
+            author_id=user.id,
+            title="test_title_1",
+            content="test_content_1",
+            post_view_id=1,
+        )
     )
     await test_session.commit()
     await test_client.post(
@@ -253,8 +284,14 @@ async def test_get_comments_by_user_ok(
         select(User).where(User.nickname == "test_user")
     )
     user = user_result.first()
+    test_session.add(PostView(id=1))
     test_session.add(
-        Post(author_id=user.id, title="test_title_1", content="test_content_1")
+        Post(
+            author_id=user.id,
+            title="test_title_1",
+            content="test_content_1",
+            post_view_id=1,
+        )
     )
     test_session.add(Comment(author_id=user.id, post_id=1, content="test_comment_1"))
     test_session.add(Comment(author_id=user.id, post_id=1, content="test_comment_2"))
@@ -285,8 +322,14 @@ async def test_get_comments_by_user_empty_ok(
         select(User).where(User.nickname == "test_user")
     )
     user = user_result.first()
+    test_session.add(PostView(id=1))
     test_session.add(
-        Post(author_id=user.id, title="test_title_1", content="test_content_1")
+        Post(
+            author_id=user.id,
+            title="test_title_1",
+            content="test_content_1",
+            post_view_id=1,
+        )
     )
     await test_session.commit()
     await test_client.post(
@@ -315,8 +358,14 @@ async def test_get_comments_by_post_and_user_ok(
         select(User).where(User.nickname == "test_user")
     )
     user = user_result.first()
+    test_session.add(PostView(id=1))
     test_session.add(
-        Post(author_id=user.id, title="test_title_1", content="test_content_1")
+        Post(
+            author_id=user.id,
+            title="test_title_1",
+            content="test_content_1",
+            post_view_id=1,
+        )
     )
     test_session.add(Comment(author_id=user.id, post_id=1, content="test_comment_1"))
     test_session.add(Comment(author_id=user.id, post_id=1, content="test_comment_2"))
@@ -340,8 +389,14 @@ async def test_get_comments_by_post_and_user_empty_ok(
         select(User).where(User.nickname == "test_user")
     )
     user = user_result.first()
+    test_session.add(PostView(id=1))
     test_session.add(
-        Post(author_id=user.id, title="test_title_1", content="test_content_1")
+        Post(
+            author_id=user.id,
+            title="test_title_1",
+            content="test_content_1",
+            post_view_id=1,
+        )
     )
     await test_session.commit()
 
@@ -363,8 +418,14 @@ async def test_get_comments_ok(
         select(User).where(User.nickname == "test_user")
     )
     user = user_result.first()
+    test_session.add(PostView(id=1))
     test_session.add(
-        Post(author_id=user.id, title="test_title_1", content="test_content_1")
+        Post(
+            author_id=user.id,
+            title="test_title_1",
+            content="test_content_1",
+            post_view_id=1,
+        )
     )
     test_session.add(Comment(author_id=user.id, post_id=1, content="test_comment_1"))
     test_session.add(Comment(author_id=user.id, post_id=1, content="test_comment_2"))
@@ -388,8 +449,14 @@ async def test_comment_patch_ok(
         select(User).where(User.nickname == "test_user")
     )
     user = user_result.first()
+    test_session.add(PostView(id=1))
     test_session.add(
-        Post(author_id=user.id, title="test_title_1", content="test_content_1")
+        Post(
+            author_id=user.id,
+            title="test_title_1",
+            content="test_content_1",
+            post_view_id=1,
+        )
     )
     test_session.add(Comment(author_id=user.id, post_id=1, content="test_comment_1"))
     await test_session.commit()
@@ -426,8 +493,14 @@ async def test_comment_patch_not_exists(
         select(User).where(User.nickname == "test_user")
     )
     user = user_result.first()
+    test_session.add(PostView(id=1))
     test_session.add(
-        Post(author_id=user.id, title="test_title_1", content="test_content_1")
+        Post(
+            author_id=user.id,
+            title="test_title_1",
+            content="test_content_1",
+            post_view_id=1,
+        )
     )
     await test_session.commit()
     await test_client.post(
@@ -457,8 +530,14 @@ async def test_comment_patch_invalid_author(
         select(User).where(User.nickname == "test_user")
     )
     user = user_result.first()
+    test_session.add(PostView(id=1))
     test_session.add(
-        Post(author_id=user.id, title="test_title_1", content="test_content_1")
+        Post(
+            author_id=user.id,
+            title="test_title_1",
+            content="test_content_1",
+            post_view_id=1,
+        )
     )
     test_session.add(Comment(author_id=user.id, post_id=1, content="test_comment_1"))
 
@@ -503,8 +582,14 @@ async def test_comment_patch_admin_role(
         select(User).where(User.nickname == "test_user")
     )
     user = user_result.first()
+    test_session.add(PostView(id=1))
     test_session.add(
-        Post(author_id=user.id, title="test_title_1", content="test_content_1")
+        Post(
+            author_id=user.id,
+            title="test_title_1",
+            content="test_content_1",
+            post_view_id=1,
+        )
     )
     test_session.add(Comment(author_id=user.id, post_id=1, content="test_comment_1"))
 
@@ -555,8 +640,14 @@ async def test_comment_delete_ok(
         select(User).where(User.nickname == "test_user")
     )
     user = user_result.first()
+    test_session.add(PostView(id=1))
     test_session.add(
-        Post(author_id=user.id, title="test_title_1", content="test_content_1")
+        Post(
+            author_id=user.id,
+            title="test_title_1",
+            content="test_content_1",
+            post_view_id=1,
+        )
     )
     test_session.add(Comment(author_id=user.id, post_id=1, content="test_comment_1"))
     await test_session.commit()
@@ -591,8 +682,14 @@ async def test_comment_delete_not_exists(
         select(User).where(User.nickname == "test_user")
     )
     user = user_result.first()
+    test_session.add(PostView(id=1))
     test_session.add(
-        Post(author_id=user.id, title="test_title_1", content="test_content_1")
+        Post(
+            author_id=user.id,
+            title="test_title_1",
+            content="test_content_1",
+            post_view_id=1,
+        )
     )
     await test_session.commit()
     await test_client.post(
@@ -620,8 +717,14 @@ async def test_comment_delete_invalid_author(
         select(User).where(User.nickname == "test_user")
     )
     user = user_result.first()
+    test_session.add(PostView(id=1))
     test_session.add(
-        Post(author_id=user.id, title="test_title_1", content="test_content_1")
+        Post(
+            author_id=user.id,
+            title="test_title_1",
+            content="test_content_1",
+            post_view_id=1,
+        )
     )
     test_session.add(Comment(author_id=user.id, post_id=1, content="test_comment_1"))
     hashed_password = hash_password(plain_password="Test_password")
@@ -663,8 +766,14 @@ async def test_comment_delete_admin_role(
         select(User).where(User.nickname == "test_user")
     )
     user = user_result.first()
+    test_session.add(PostView(id=1))
     test_session.add(
-        Post(author_id=user.id, title="test_title_1", content="test_content_1")
+        Post(
+            author_id=user.id,
+            title="test_title_1",
+            content="test_content_1",
+            post_view_id=1,
+        )
     )
     test_session.add(Comment(author_id=user.id, post_id=1, content="test_comment_1"))
     hashed_password = hash_password(plain_password="Test_password")

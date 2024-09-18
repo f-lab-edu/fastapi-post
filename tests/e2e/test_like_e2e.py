@@ -11,6 +11,7 @@ from src.config import config
 from src.database import get_session
 from src.domains.like import Like
 from src.domains.post import Post
+from src.domains.post_view import PostView
 from src.domains.user import User
 from src.main import app
 
@@ -45,8 +46,15 @@ async def test_create_like_ok(
         select(User).where(User.nickname == "test_user")
     )
     user = user_result.first()
+
+    test_session.add(PostView(id=1))
     test_session.add(
-        Post(author_id=user.id, title="test_title_1", content="test_content_1")  # type: ignore
+        Post(
+            author_id=user.id,  # type: ignore
+            title="test_title_1",
+            content="test_content_1",
+            post_view_id=1,
+        )
     )
     await test_session.commit()
     await test_client.post(
@@ -115,7 +123,13 @@ async def test_create_like_duplicate(
     )
     user = user_result.first()
     user_id = user.id  # type: ignore
-    test_post = Post(author_id=user_id, title="test_title_1", content="test_content_1")  # type: ignore
+    test_session.add(PostView(id=1))
+    test_post = Post(
+        author_id=user_id,
+        title="test_title_1",
+        content="test_content_1",
+        post_view_id=1,
+    )  # type: ignore
     test_session.add(test_post)
     await test_session.commit()
     await test_session.refresh(test_post)
@@ -157,7 +171,13 @@ async def test_get_liked_users_ok(
     )
     user = user_result.first()
     user_id = user.id  # type: ignore
-    test_post = Post(author_id=user_id, title="test_title_1", content="test_content_1")  # type: ignore
+    test_session.add(PostView(id=1))
+    test_post = Post(
+        author_id=user_id,
+        title="test_title_1",
+        content="test_content_1",
+        post_view_id=1,
+    )  # type: ignore
     test_session.add(test_post)
     await test_session.commit()
     await test_session.refresh(test_post)
@@ -194,7 +214,13 @@ async def test_get_liked_users_empty_ok(
     )
     user = user_result.first()
     user_id = user.id  # type: ignore
-    test_post = Post(author_id=user_id, title="test_title_1", content="test_content_1")  # type: ignore
+    test_session.add(PostView(id=1))
+    test_post = Post(
+        author_id=user_id,
+        title="test_title_1",
+        content="test_content_1",
+        post_view_id=1,
+    )  # type: ignore
     test_session.add(test_post)
     await test_session.commit()
 
@@ -249,7 +275,13 @@ async def test_like_delete_ok(
     )
     user = user_result.first()
     user_id = user.id  # type: ignore
-    test_post = Post(author_id=user_id, title="test_title_1", content="test_content_1")  # type: ignore
+    test_session.add(PostView(id=1))
+    test_post = Post(
+        author_id=user_id,
+        title="test_title_1",
+        content="test_content_1",
+        post_view_id=1,
+    )  # type: ignore
     test_session.add(test_post)
     await test_session.commit()
     await test_session.refresh(test_post)
@@ -288,7 +320,13 @@ async def test_like_delete_post_not_like(
     )
     user = user_result.first()
     user_id = user.id  # type: ignore
-    test_post = Post(author_id=user_id, title="test_title_1", content="test_content_1")  # type: ignore
+    test_session.add(PostView(id=1))
+    test_post = Post(
+        author_id=user_id,
+        title="test_title_1",
+        content="test_content_1",
+        post_view_id=1,
+    )  # type: ignore
     test_session.add(test_post)
     await test_session.commit()
     await test_session.refresh(test_post)

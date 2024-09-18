@@ -2,6 +2,7 @@ from datetime import datetime
 
 from sqlmodel import Field, Relationship, SQLModel, func
 
+from src.domains.post_view import PostView
 from src.domains.user import User
 
 
@@ -19,6 +20,9 @@ class Post(SQLModel, table=True):  # type: ignore
 
     comments: list["Comment"] = Relationship(back_populates="post")  # type: ignore
     likes: list["Like"] = Relationship(back_populates="post")  # type: ignore
+
+    post_view_id: int = Field(foreign_key="postview.id")
+    post_view: PostView = Relationship(back_populates="post")
 
     @property
     def author(self):

@@ -10,6 +10,7 @@ from src.auth import hash_password
 from src.config import config
 from src.database import get_session
 from src.domains.post import Post
+from src.domains.post_view import PostView
 from src.domains.user import User
 from src.main import app
 
@@ -104,11 +105,23 @@ async def test_get_posts_ok(
         select(User).where(User.nickname == "test_user")
     )
     user = user_result.first()
+    test_session.add(PostView(id=1))
     test_session.add(
-        Post(author_id=user.id, title="test_title_1", content="test_content_1")
+        Post(
+            author_id=user.id,
+            title="test_title_1",
+            content="test_content_1",
+            post_view_id=1,
+        )
     )
+    test_session.add(PostView(id=2))
     test_session.add(
-        Post(author_id=user.id, title="test_title_2", content="test_content_2")
+        Post(
+            author_id=user.id,
+            title="test_title_2",
+            content="test_content_2",
+            post_view_id=2,
+        )
     )
     await test_session.commit()
 
@@ -147,8 +160,14 @@ async def test_get_post_ok(
         select(User).where(User.nickname == "test_user")
     )
     user = user_result.first()
+    test_session.add(PostView(id=1))
     test_session.add(
-        Post(author_id=user.id, title="test_title_1", content="test_content_1")
+        Post(
+            author_id=user.id,
+            title="test_title_1",
+            content="test_content_1",
+            post_view_id=1,
+        )
     )
     await test_session.commit()
 
@@ -185,8 +204,14 @@ async def test_post_patch_ok(
         select(User).where(User.nickname == "test_user")
     )
     user = user_result.first()
+    test_session.add(PostView(id=1))
     test_session.add(
-        Post(author_id=user.id, title="test_title_1", content="test_content_1")
+        Post(
+            author_id=user.id,
+            title="test_title_1",
+            content="test_content_1",
+            post_view_id=1,
+        )
     )
     await test_session.commit()
     await test_client.post(
@@ -243,8 +268,14 @@ async def test_post_patch_invalid_author(
         select(User).where(User.nickname == "test_user")
     )
     user = user_result.first()
+    test_session.add(PostView(id=1))
     test_session.add(
-        Post(author_id=user.id, title="test_title_1", content="test_content_1")
+        Post(
+            author_id=user.id,
+            title="test_title_1",
+            content="test_content_1",
+            post_view_id=1,
+        )
     )
     hashed_password = hash_password(plain_password="Test_password")
     new_user = User(nickname="test_user_2", password=hashed_password)
@@ -288,8 +319,14 @@ async def test_post_put_ok(
         select(User).where(User.nickname == "test_user")
     )
     user = user_result.first()
+    test_session.add(PostView(id=1))
     test_session.add(
-        Post(author_id=user.id, title="test_title_1", content="test_content_1")
+        Post(
+            author_id=user.id,
+            title="test_title_1",
+            content="test_content_1",
+            post_view_id=1,
+        )
     )
     await test_session.commit()
     await test_client.post(
@@ -348,8 +385,14 @@ async def test_post_put_invalid_author(
         select(User).where(User.nickname == "test_user")
     )
     user = user_result.first()
+    test_session.add(PostView(id=1))
     test_session.add(
-        Post(author_id=user.id, title="test_title_1", content="test_content_1")
+        Post(
+            author_id=user.id,
+            title="test_title_1",
+            content="test_content_1",
+            post_view_id=1,
+        )
     )
     hashed_password = hash_password(plain_password="Test_password")
     new_user = User(nickname="test_user_2", password=hashed_password)
@@ -394,8 +437,14 @@ async def test_post_put_missing_field(
         select(User).where(User.nickname == "test_user")
     )
     user = user_result.first()
+    test_session.add(PostView(id=1))
     test_session.add(
-        Post(author_id=user.id, title="test_title_1", content="test_content_1")
+        Post(
+            author_id=user.id,
+            title="test_title_1",
+            content="test_content_1",
+            post_view_id=1,
+        )
     )
     await test_session.commit()
     await test_client.post(
@@ -425,8 +474,14 @@ async def test_post_delete_ok(
         select(User).where(User.nickname == "test_user")
     )
     user = user_result.first()
+    test_session.add(PostView(id=1))
     test_session.add(
-        Post(author_id=user.id, title="test_title_1", content="test_content_1")
+        Post(
+            author_id=user.id,
+            title="test_title_1",
+            content="test_content_1",
+            post_view_id=1,
+        )
     )
     await test_session.commit()
     await test_client.post(
@@ -457,8 +512,14 @@ async def test_post_delete_invalid_author(
         select(User).where(User.nickname == "test_user")
     )
     user = user_result.first()
+    test_session.add(PostView(id=1))
     test_session.add(
-        Post(author_id=user.id, title="test_title_1", content="test_content_1")
+        Post(
+            author_id=user.id,
+            title="test_title_1",
+            content="test_content_1",
+            post_view_id=1,
+        )
     )
 
     hashed_password = hash_password(plain_password="Test_password")

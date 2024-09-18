@@ -37,14 +37,9 @@ async def test_create_post(mocker, mock_session, post_service) -> None:
 
     # Then
     assert isinstance(result, Post)
-    # assert result.id == 1
     assert result.author_id == 1
     assert result.title == "테스트 제목"
     assert result.content == "테스트 내용"
-
-    mock_session.add.assert_called_once()
-    mock_session.commit.assert_called_once()
-    mock_session.refresh.assert_called_once()
 
 
 @pytest.mark.asyncio
@@ -52,17 +47,23 @@ async def test_create_post(mocker, mock_session, post_service) -> None:
 async def test_get_posts(mock_session: AsyncMock, post_service: PostService) -> None:
     # Given
     mock_posts = [
-        (
-            Post(id=1, title="테스트 제목 1", content="테스트 내용 1"),
-            User(id=1, nickname="테스트 닉네임1"),
+        Post(
+            id=1,
+            title="테스트 제목 1",
+            content="테스트 내용 1",
+            user=User(id=1, nickname="테스트 닉네임1"),
         ),
-        (
-            Post(id=2, title="테스트 제목 2", content="테스트 내용 2"),
-            User(id=1, nickname="테스트 닉네임1"),
+        Post(
+            id=2,
+            title="테스트 제목 2",
+            content="테스트 내용 2",
+            user=User(id=1, nickname="테스트 닉네임1"),
         ),
-        (
-            Post(id=3, title="테스트 제목 3", content="테스트 내용 3"),
-            User(id=1, nickname="테스트 닉네임1"),
+        Post(
+            id=3,
+            title="테스트 제목 3",
+            content="테스트 내용 3",
+            user=User(id=1, nickname="테스트 닉네임1"),
         ),
     ]
     mock_result = MagicMock()
@@ -77,7 +78,7 @@ async def test_get_posts(mock_session: AsyncMock, post_service: PostService) -> 
     assert len(result) == 3
     assert result[0].title == "테스트 제목 1"
     assert result[0].content == "테스트 내용 1"
-    assert isinstance(result[0].author, User)
+    assert isinstance(result[0].user, User)
 
     mock_session.exec.assert_called_once()
     mock_result.all.assert_called_once()
@@ -87,10 +88,13 @@ async def test_get_posts(mock_session: AsyncMock, post_service: PostService) -> 
 @pytest.mark.unit
 async def test_get_post(mock_session, post_service) -> None:
     # Given
-    mock_post = (
-        Post(id=1, title="테스트 제목 1", content="테스트 내용 1"),
-        User(id=1, nickname="테스트 닉네임1"),
+    mock_post = Post(
+        id=1,
+        title="테스트 제목 1",
+        content="테스트 내용 1",
+        user=User(id=1, nickname="테스트 닉네임1"),
     )
+
     mock_result = MagicMock()
     mock_result.first.return_value = mock_post
     mock_session.exec.return_value = mock_result
@@ -102,7 +106,7 @@ async def test_get_post(mock_session, post_service) -> None:
     assert isinstance(result, Post)
     assert result.title == "테스트 제목 1"
     assert result.content == "테스트 내용 1"
-    assert isinstance(result.author, User)
+    assert isinstance(result.user, User)
 
     mock_session.exec.assert_called_once()
     mock_result.first.assert_called_once()

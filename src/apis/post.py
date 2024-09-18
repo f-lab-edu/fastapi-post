@@ -14,6 +14,7 @@ from src.schemas.post import (
     EditPostWholeRequest,
     PostResponse,
     PostsResponse,
+    PostsResponseBody,
 )
 from src.servicies.post import PostService
 
@@ -46,7 +47,7 @@ async def create_post(
 
 
 @router.get("/", response_model=PostsResponse, status_code=status.HTTP_200_OK)
-async def get_get_posts(
+async def get_posts(
     page: int = Query(1),
     service: PostService = Depends(PostService),
     redis: Redis = Depends(get_redis),
@@ -60,15 +61,18 @@ async def get_get_posts(
         pass
 
     posts = await service.get_posts(page)
+
     response = PostsResponse(
         posts=[
-            PostResponse(
+            PostsResponseBody(
                 id=post.id,  # type: ignore
-                author=post.author,
+                author=post.user.nickname,
                 title=post.title,
-                content=post.content,
                 created_at=post.created_at,
                 updated_at=post.updated_at,
+                comment_count=len(post.comments),
+                like_count=len(post.likes),
+                view_count=post.post_view.count,
             )
             for post in posts
         ]
@@ -111,6 +115,8 @@ async def get_post(
         created_at=post.created_at,
         updated_at=post.updated_at,
     )
+    await service.increase_post_view(post.post_view_id)
+
     try:
         await redis.setex(
             name=cache_key, time=3600, value=json.dumps(response.model_dump())
