@@ -148,7 +148,7 @@ async def test_create_like_duplicate(
 # 포스트에 좋아요 한 유저 조회
 @pytest.mark.asyncio
 @pytest.mark.get
-async def test_get_like_users_ok(
+async def test_get_liked_users_ok(
     test_client: AsyncClient, test_session: AsyncSession
 ) -> None:
     # given
@@ -185,7 +185,7 @@ async def test_get_like_users_ok(
 # 포스트에 좋아요 하지 않은 상태에서 유저 조회
 @pytest.mark.asyncio
 @pytest.mark.get
-async def test_get_like_users_empty_ok(
+async def test_get_liked_users_empty_ok(
     test_client: AsyncClient, test_session: AsyncSession
 ) -> None:
     # given
@@ -217,7 +217,7 @@ async def test_get_like_users_empty_ok(
 # 존재하지 않는 포스트에 좋아요 유저 조회
 @pytest.mark.asyncio
 @pytest.mark.get
-async def test_get_like_users_not_exists(
+async def test_get_liked_users_not_exists(
     test_client: AsyncClient, test_session: AsyncSession
 ) -> None:
     # given
@@ -232,6 +232,7 @@ async def test_get_like_users_not_exists(
     # when
     response = await test_client.get("/likes/?post_id=1")
 
+    # then
     assert response.status_code == 400
     assert response.json()["detail"] == "존재하지 않는 포스트입니다"
 
@@ -239,7 +240,69 @@ async def test_get_like_users_not_exists(
 # 포스트에 좋아요 삭제
 @pytest.mark.asyncio
 @pytest.mark.delete
-async def test_delete_like_ok(
+async def test_like_delete_ok(
     test_client: AsyncClient, test_session: AsyncSession
 ) -> None:
-    None
+    # given
+    user_result = await test_session.exec(
+        select(User).where(User.nickname == "test_user")
+    )
+    user = user_result.first()
+    user_id = user.id  # type: ignore
+    test_post = Post(author_id=user_id, title="test_title_1", content="test_content_1")  # type: ignore
+    test_session.add(test_post)
+    await test_session.commit()
+    await test_session.refresh(test_post)
+    post_id = test_post.id  # type: ignore
+    test_like = Like(user_id=user_id, post_id=post_id)  # type: ignore
+    test_session.add(test_like)
+    await test_session.commit()
+
+    await test_client.post(
+        "/users/login",
+        json={
+            "nickname": "test_user",
+            "password": "Test_password",
+        },
+    )
+
+    # when
+    response = await test_client.delete("/likes/1")
+
+    # then
+    assert response.status_code == 204
+
+    result = await test_session.exec(select(Like).where(Like.post_id == 1))
+    post = result.first()
+    assert post is None  # type: ignore
+
+
+@pytest.mark.asyncio
+@pytest.mark.delete
+async def test_like_delete_post_not_like(
+    test_client: AsyncClient, test_session: AsyncSession
+) -> None:
+    # given
+    user_result = await test_session.exec(
+        select(User).where(User.nickname == "test_user")
+    )
+    user = user_result.first()
+    user_id = user.id  # type: ignore
+    test_post = Post(author_id=user_id, title="test_title_1", content="test_content_1")  # type: ignore
+    test_session.add(test_post)
+    await test_session.commit()
+    await test_session.refresh(test_post)
+
+    await test_client.post(
+        "/users/login",
+        json={
+            "nickname": "test_user",
+            "password": "Test_password",
+        },
+    )
+
+    # when
+    response = await test_client.delete("/likes/1")
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == "좋아요 하지 않은 포스트입니다"

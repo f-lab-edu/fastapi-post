@@ -22,7 +22,15 @@ class LikeServiceBase(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    async def get_like_users(self, post_id: int | None = None) -> List[User]:
+    async def get_like(self, like_id: int, user_id: int | None = None) -> Like | None:
+        pass
+
+    @abstractmethod
+    async def get_liked_users(self, post_id: int | None = None) -> List[User]:
+        pass
+
+    @abstractmethod
+    async def like_delete(self, like: Like) -> None:
         pass
 
 
@@ -49,7 +57,17 @@ class LikeService(LikeServiceBase):
 
         return like
 
-    async def get_like_users(self, post_id: int | None = None) -> List[User]:
+    async def get_like(self, like_id: int, user_id: int | None = None) -> Like | None:
+        orm_query = select(Like).where(Like.id == like_id)
+        if user_id:
+            orm_query = orm_query.where(Like.user_id == user_id)
+        print(orm_query)
+        result = await self.session.exec(orm_query)
+        like = result.first()
+
+        return like
+
+    async def get_liked_users(self, post_id: int | None = None) -> List[User]:
         orm_query = select(User).join(Like)
         if post_id:
             orm_query = orm_query.where(Like.post_id == post_id)
@@ -57,3 +75,7 @@ class LikeService(LikeServiceBase):
         like_users = result.all()
 
         return list(like_users)
+
+    async def like_delete(self, like: Like) -> None:
+        await self.session.delete(like)
+        await self.session.commit()

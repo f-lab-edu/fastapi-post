@@ -59,7 +59,7 @@ async def create_like(
     status_code=status.HTTP_200_OK,
     response_model=GetLikeUsersResponse,
 )
-async def get_like_users(
+async def get_liked_users(
     post_id: int | None = None,
     like_service: LikeServiceBase = Depends(LikeService),
     post_service: PostService = Depends(PostService),
@@ -73,7 +73,7 @@ async def get_like_users(
                 detail="존재하지 않는 포스트입니다",
             )
 
-    users = await like_service.get_like_users(post_id=post_id)
+    users = await like_service.get_liked_users(post_id=post_id)
     response = GetLikeUsersResponse(
         users=[
             LikeUserResponse(
@@ -88,3 +88,22 @@ async def get_like_users(
     )
 
     return response
+
+
+@router.delete("/{like_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def like_delete(
+    like_id: int,
+    like_service: LikeServiceBase = Depends(LikeService),
+    current_user: SessionContent = Depends(get_current_user),
+) -> None:
+    user_id = current_user.id
+
+    like = await like_service.get_like(like_id=like_id, user_id=user_id)
+
+    if not like:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="좋아요 하지 않은 포스트입니다",
+        )
+
+    await like_service.like_delete(like)
