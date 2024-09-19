@@ -111,10 +111,17 @@ erDiagram
     POST {
         int id PK "포스트 ID"
         str title "포스트 제목"
+        str content "포스트 내용"
         int author_id FK "작성자 ID"
-        int content_id FK "포스트 내용 ID"
+        int post_view_id FK "조회수 ID"
         datetime created_at "포스트 생성일자"
         datetime updated_at "포스트 갱신일자"
+    }
+
+    POST ||--|| POSTVIEW:""
+    POSTVIEW {
+        int id PK "조회수 ID"
+        int count "조회수"
     }
 
     USER ||--o{ POST: ""
@@ -123,8 +130,17 @@ erDiagram
         int id PK "유저 ID"
         str nickname "유저닉네임"
         str password "유저 비밀번호"
+        str role "유저 타입"
+        str profile_img_url "유저 프로필 이미지 주소"
         datetime created_at "포스트 생성일자"
         datetime updated_at "포스트 갱신일자"
+    }
+
+    USER ||--|| LOGINSESSION: ""
+    LOGINSESSION {
+        int id PK "세션 ID"
+        str session_data "세션 값"
+        datetime created_at "세션 생성일자"
     }
 
     COMMENT {
@@ -134,6 +150,24 @@ erDiagram
         int post_id FK "포스트 ID"
         datetime created_at "코멘트 생성일자"
         datetime updated_at "코멘트 갱신일자"
+    }
+
+    USER ||--o{ LIKE: ""
+    POST ||--o{ LIKE: ""
+    LIKE {
+        int id PK "좋아요 ID"
+        datetime created_at "좋아요 생성일자"
+        int user_id FK "유저 ID"
+        int post_id FK "포스트 ID"
+    }
+
+    USER ||--o{ NOTIFICATION: ""
+    POST ||--o{ NOTIFICATION: ""
+    NOTIFICATION {
+        int id PK "알림 ID"
+        datetime created_at "알림 생성일자"
+        int user_id FK "좋아요 한 유저 ID"
+        int post_id FK "좋아요 한 포스트 ID"
     }
 ```
 

@@ -1,6 +1,14 @@
 from datetime import datetime, timedelta
 
-from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
+from fastapi import (
+    APIRouter,
+    Cookie,
+    Depends,
+    HTTPException,
+    Response,
+    UploadFile,
+    status,
+)
 from ulid import ULID
 
 from src.auth import get_current_user, verify_password
@@ -12,6 +20,8 @@ from src.schemas.user import (
     NotificationsResponseBody,
     SignUpRequest,
     SignUpResponse,
+    UploadProfileImgResponse,
+    UserResponse,
 )
 from src.servicies.auth import AuthService
 from src.servicies.user import UserService
@@ -121,4 +131,64 @@ async def user_notifications(
         ]
     )
 
+    return response
+
+
+@router.get("/profile", status_code=status.HTTP_200_OK)
+async def user_profile(
+    service: UserService = Depends(UserService),
+    current_user: SessionContent = Depends(get_current_user),
+) -> UserResponse:
+    user_id = current_user.id
+
+    user = await service.get_user(user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="존재하지 않는 유저입니다"
+        )
+    response = UserResponse(
+        id=user.id,  # type: ignore
+        nickname=user.nickname,
+        role=user.role,
+        profile_img=user.profile_img_url if user.profile_img_url else "",
+        created_at=user.created_at,
+        updated_at=user.updated_at,
+    )
+
+    return response
+
+
+@router.post("/profile_img", status_code=status.HTTP_201_CREATED)
+async def upload_profile_img(
+    file: UploadFile,
+    service: UserService = Depends(UserService),
+    current_user: SessionContent = Depends(get_current_user),
+) -> UploadProfileImgResponse:
+    user_id = current_user.id
+
+    allow_extension = ["jpg", "jpeg", "png"]
+    if not file.content_type or not file.content_type.startswith("image"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="이미지 파일만 업로드 가능합니다.",
+        )
+    if not file.filename:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="파일 이름이 없습니다.",
+        )
+    file_extention = file.filename.split(".")[-1].lower()
+    if file_extention not in allow_extension:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="업로드 할 수 없는 이미지 확장자입니다. jpg, jpeg, png 확장자를 이용해 주세요",
+        )
+    content = await file.read()
+    filename = f"{str(ULID.from_datetime(datetime.now()))}.{file_extention}"  # uuid로 유니크한 파일명으로 변경
+
+    img_url = await service.save_profile_img(
+        user_id=user_id, img_name=filename, img_content=content
+    )
+
+    response = UploadProfileImgResponse(img_url=img_url)
     return response
