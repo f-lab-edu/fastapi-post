@@ -19,3 +19,9 @@ class User(SQLModel, table=True):  # type: ignore
 
     posts: list["Post"] = Relationship(back_populates="user")  # type: ignore
     comments: list["Comment"] = Relationship(back_populates="user")  # type: ignore
+    likes: list["Like"] = Relationship(back_populates="user")  # type: ignore
+    notifications: list["Notification"] = Relationship(back_populates="user")  # type: ignore
+
+
+# like.py에서 User를 참조하는 순환참조 에러 발생.
+from src.domains.like import Like

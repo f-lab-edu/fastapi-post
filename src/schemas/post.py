@@ -22,8 +22,19 @@ class PostResponse(BaseModel):
     updated_at: datetime
 
 
+class PostsResponseBody(BaseModel):
+    id: int
+    author: str
+    title: str
+    created_at: datetime
+    updated_at: datetime
+    comment_count: int
+    view_count: int
+    like_count: int
+
+
 class PostsResponse(BaseModel):
-    posts: List[PostResponse]
+    posts: List[PostsResponseBody]
 
 
 class EditPostRequest(BaseModel):
