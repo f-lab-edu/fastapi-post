@@ -1,4 +1,5 @@
 import re
+from datetime import datetime
 from typing import List
 
 from fastapi import HTTPException, status
@@ -48,3 +49,16 @@ class NotificationsResponseBody(BaseModel):
 
 class NotificationsResponse(BaseModel):
     notifications: List[NotificationsResponseBody]
+
+
+class UserResponse(BaseModel):
+    id: int
+    nickname: str
+    role: Role = Field(default=Role.member)
+    profile_img: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class UploadProfileImgResponse(BaseModel):
+    img_url: str

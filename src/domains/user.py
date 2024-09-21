@@ -14,6 +14,7 @@ class User(SQLModel, table=True):  # type: ignore
     nickname: str
     password: str
     role: Role = Field(default=Role.member)
+    profile_img_url: str | None = Field(default=None)
     created_at: datetime = Field(default=func.now())
     updated_at: datetime = Field(default_factory=func.now)
 
