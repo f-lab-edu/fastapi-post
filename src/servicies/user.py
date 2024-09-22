@@ -1,5 +1,4 @@
 import os
-from typing import List
 
 from fastapi import Depends
 from sqlalchemy import update
@@ -9,7 +8,6 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from src.auth import hash_password
 from src.config import config
 from src.database import get_session
-from src.domains.notification import Notification
 from src.domains.user import User
 
 
@@ -38,12 +36,6 @@ class UserService:
         user = result.first()
 
         return user
-
-    async def get_user_notification(self, user_id: int) -> List[Notification]:
-        result = await self.session.exec(select(Notification).where(User.id == user_id))
-        notifications = result.all()
-
-        return list(notifications)
 
     async def save_profile_img(
         self, user_id: int, img_name: str, img_content: bytes

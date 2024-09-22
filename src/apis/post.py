@@ -115,7 +115,7 @@ async def get_post(
         created_at=post.created_at,
         updated_at=post.updated_at,
     )
-    await service.increase_post_view(post.post_view_id)
+    await service.increase_post_view(post_id=post.id)  # type: ignore
 
     try:
         await redis.setex(

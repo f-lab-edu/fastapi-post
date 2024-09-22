@@ -1,6 +1,5 @@
 import re
 from datetime import datetime
-from typing import List
 
 from fastapi import HTTPException, status
 from pydantic import BaseModel, Field, field_validator
@@ -41,16 +40,6 @@ class LoginResponse(BaseModel):
     session_id: str
 
 
-class NotificationsResponseBody(BaseModel):
-    id: int
-    user_id: int
-    post_id: int
-
-
-class NotificationsResponse(BaseModel):
-    notifications: List[NotificationsResponseBody]
-
-
 class UserResponse(BaseModel):
     id: int
     nickname: str
@@ -58,7 +47,3 @@ class UserResponse(BaseModel):
     profile_img: str
     created_at: datetime
     updated_at: datetime
-
-
-class UploadProfileImgResponse(BaseModel):
-    img_url: str

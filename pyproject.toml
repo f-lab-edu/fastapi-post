@@ -94,4 +94,5 @@ markers = [
   "login",
   "logout",
   "unit",
+  "get"
 ]
