@@ -35,7 +35,6 @@ async def create_like(
             status_code=status.HTTP_400_BAD_REQUEST, detail="존재하지 않는 포스트입니다"
         )
 
-    # author_id = post.author_id
     like = await like_service.get_like_by_user_and_post(
         user_id=user_id, post_id=request.post_id
     )
