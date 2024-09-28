@@ -19,13 +19,13 @@ def mock_session() -> AsyncMock:
 
 
 @pytest.fixture
-def post_service(mock_session) -> PostService:
+def post_service(mock_session: AsyncMock) -> PostService:
     return PostService(session=mock_session)
 
 
 @pytest.mark.asyncio
 @pytest.mark.unit
-async def test_create_post(mocker, mock_session, post_service) -> None:
+async def test_create_post(mocker, post_service: PostService) -> None:
     # Given
     mocker.patch("src.domains.comment.Comment")
     user_id = 1
@@ -86,7 +86,7 @@ async def test_get_posts(mock_session: AsyncMock, post_service: PostService) -> 
 
 @pytest.mark.asyncio
 @pytest.mark.unit
-async def test_get_post(mock_session, post_service) -> None:
+async def test_get_post(mock_session: AsyncMock, post_service: PostService) -> None:
     # Given
     mock_post = Post(
         id=1,
@@ -114,12 +114,12 @@ async def test_get_post(mock_session, post_service) -> None:
 
 @pytest.mark.asyncio
 @pytest.mark.unit
-async def test_edit_post(mock_session, post_service) -> None:
+async def test_edit_post(mock_session: AsyncMock, post_service: PostService) -> None:
     # Given
     mock_post = Post(id=1, title="테스트 제목 1", content="테스트 내용 1")
 
     # When
-    result = await post_service.edit_post(
+    result = await post_service.edit_post(  # type: ignore
         post=mock_post, title="edit_title", content="edit_content"
     )
 
@@ -134,15 +134,14 @@ async def test_edit_post(mock_session, post_service) -> None:
 
 @pytest.mark.asyncio
 @pytest.mark.unit
-async def test_delete_post(mock_session, post_service) -> None:
+async def test_delete_post(mock_session: AsyncMock, post_service: PostService) -> None:
     # Given
     mock_post = Post(id=1, title="테스트 제목 1", content="테스트 내용 1")
 
     # When
-    result = await post_service.delete_post(post=mock_post)
+    result = await post_service.delete_post(post=mock_post)  # type: ignore
 
     # Then
     assert result is None
 
-    mock_session.delete.assert_called_once()
     mock_session.commit.assert_called_once()

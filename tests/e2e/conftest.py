@@ -29,6 +29,7 @@ async def test_session(test_engine: AsyncEngine) -> AsyncSession:
     AsyncSessionLocal = async_sessionmaker(
         autocommit=False,
         autoflush=False,
+        expire_on_commit=False,
         bind=test_engine,
         class_=AsyncSession,
     )

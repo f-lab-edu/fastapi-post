@@ -47,15 +47,15 @@ async def test_create_like_ok(
     )
     user = user_result.first()
 
-    test_session.add(PostView(id=1))
     test_session.add(
         Post(
+            id=1,
             author_id=user.id,  # type: ignore
             title="test_title_1",
             content="test_content_1",
-            post_view_id=1,
         )
     )
+    test_session.add(PostView(post_id=1))
     await test_session.commit()
     await test_client.post(
         "/users/login",
@@ -123,14 +123,14 @@ async def test_create_like_duplicate(
     )
     user = user_result.first()
     user_id = user.id  # type: ignore
-    test_session.add(PostView(id=1))
     test_post = Post(
+        id=1,
         author_id=user_id,
         title="test_title_1",
         content="test_content_1",
-        post_view_id=1,
     )  # type: ignore
     test_session.add(test_post)
+    test_session.add(PostView(post_id=1))
     await test_session.commit()
     await test_session.refresh(test_post)
     post_id = test_post.id  # type: ignore
@@ -171,14 +171,14 @@ async def test_get_liked_users_ok(
     )
     user = user_result.first()
     user_id = user.id  # type: ignore
-    test_session.add(PostView(id=1))
     test_post = Post(
+        id=1,
         author_id=user_id,
         title="test_title_1",
         content="test_content_1",
-        post_view_id=1,
     )  # type: ignore
     test_session.add(test_post)
+    test_session.add(PostView(post_id=1))
     await test_session.commit()
     await test_session.refresh(test_post)
     post_id = test_post.id  # type: ignore
@@ -214,14 +214,14 @@ async def test_get_liked_users_empty_ok(
     )
     user = user_result.first()
     user_id = user.id  # type: ignore
-    test_session.add(PostView(id=1))
     test_post = Post(
+        id=1,
         author_id=user_id,
         title="test_title_1",
         content="test_content_1",
-        post_view_id=1,
     )  # type: ignore
     test_session.add(test_post)
+    test_session.add(PostView(post_id=1))
     await test_session.commit()
 
     await test_client.post(
@@ -266,7 +266,7 @@ async def test_get_liked_users_not_exists(
 # 포스트에 좋아요 삭제
 @pytest.mark.asyncio
 @pytest.mark.delete
-async def test_like_delete_ok(
+async def test_delete_like_ok(
     test_client: AsyncClient, test_session: AsyncSession
 ) -> None:
     # given
@@ -275,14 +275,14 @@ async def test_like_delete_ok(
     )
     user = user_result.first()
     user_id = user.id  # type: ignore
-    test_session.add(PostView(id=1))
     test_post = Post(
+        id=1,
         author_id=user_id,
         title="test_title_1",
         content="test_content_1",
-        post_view_id=1,
     )  # type: ignore
     test_session.add(test_post)
+    test_session.add(PostView(post_id=1))
     await test_session.commit()
     await test_session.refresh(test_post)
     post_id = test_post.id  # type: ignore
@@ -311,7 +311,7 @@ async def test_like_delete_ok(
 
 @pytest.mark.asyncio
 @pytest.mark.delete
-async def test_like_delete_post_not_like(
+async def test_delete_like_post_not_like(
     test_client: AsyncClient, test_session: AsyncSession
 ) -> None:
     # given
@@ -320,14 +320,14 @@ async def test_like_delete_post_not_like(
     )
     user = user_result.first()
     user_id = user.id  # type: ignore
-    test_session.add(PostView(id=1))
     test_post = Post(
+        id=1,
         author_id=user_id,
         title="test_title_1",
         content="test_content_1",
-        post_view_id=1,
     )  # type: ignore
     test_session.add(test_post)
+    test_session.add(PostView(post_id=1))
     await test_session.commit()
     await test_session.refresh(test_post)
 

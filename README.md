@@ -113,7 +113,6 @@ erDiagram
         str title "포스트 제목"
         str content "포스트 내용"
         int author_id FK "작성자 ID"
-        int post_view_id FK "조회수 ID"
         datetime created_at "포스트 생성일자"
         datetime updated_at "포스트 갱신일자"
     }
@@ -122,6 +121,7 @@ erDiagram
     POSTVIEW {
         int id PK "조회수 ID"
         int count "조회수"
+        int post_id FK "포스트 ID"
     }
 
     USER ||--o{ POST: ""
@@ -156,18 +156,19 @@ erDiagram
     POST ||--o{ LIKE: ""
     LIKE {
         int id PK "좋아요 ID"
-        datetime created_at "좋아요 생성일자"
         int user_id FK "유저 ID"
         int post_id FK "포스트 ID"
+        datetime created_at "좋아요 생성일자"
     }
 
     USER ||--o{ NOTIFICATION: ""
     POST ||--o{ NOTIFICATION: ""
     NOTIFICATION {
         int id PK "알림 ID"
+        int target_user_id FK "알림 발송할 유저 ID"
+        int actor_user_id FK "좋아요 한 유저 ID"
+        int post_id FK "좋아요 받은 포스트 ID"
         datetime created_at "알림 생성일자"
-        int user_id FK "좋아요 한 유저 ID"
-        int post_id FK "좋아요 한 포스트 ID"
     }
 ```
 
