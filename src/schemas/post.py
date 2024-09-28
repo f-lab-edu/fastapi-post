@@ -3,6 +3,8 @@ from typing import List
 
 from pydantic import BaseModel
 
+from src.schemas.common import Link
+
 
 class CreatePostRequest(BaseModel):
     title: str
@@ -11,6 +13,8 @@ class CreatePostRequest(BaseModel):
 
 class CreatePostResponse(BaseModel):
     id: int
+    # hateos
+    links: list[Link]
 
 
 class PostResponse(BaseModel):
@@ -20,6 +24,16 @@ class PostResponse(BaseModel):
     content: str | None = None
     created_at: datetime
     updated_at: datetime
+    # hateos
+    links: list[Link]
+
+
+class LikePartial(BaseModel):
+    count: int
+
+
+class CommentPartial(BaseModel):
+    count: int
 
 
 class PostsResponseBody(BaseModel):
@@ -28,13 +42,16 @@ class PostsResponseBody(BaseModel):
     title: str
     created_at: datetime
     updated_at: datetime
-    comment_count: int
     view_count: int
-    like_count: int
+    comment: CommentPartial
+    like: LikePartial
+    links: list[Link]
 
 
 class PostsResponse(BaseModel):
     posts: List[PostsResponseBody]
+    # hateos
+    links: list[Link]
 
 
 class EditPostRequest(BaseModel):
