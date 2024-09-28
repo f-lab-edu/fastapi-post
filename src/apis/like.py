@@ -70,17 +70,13 @@ async def get_liked_users(
     like_service: LikeServiceBase = Depends(LikeService),
     post_service: PostService = Depends(PostService),
 ) -> GetLikeUsersResponse:
-
-    # users. post_id가 없는 상황에 사용자는 모든 유저를 기대할까, 빈 유저를 기대할까?
-    if not post_id:
-        return GetLikeUsersResponse(users=[])
-
-    post = await post_service.get_post(post_id)
-    if not post:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="존재하지 않는 포스트입니다",
-        )
+    if post_id:
+        post = await post_service.get_post(post_id)
+        if not post:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="존재하지 않는 포스트입니다",
+            )
 
     users = await like_service.get_liked_users(post_id=post_id)
     response = GetLikeUsersResponse(
