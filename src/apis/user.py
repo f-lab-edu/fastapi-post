@@ -4,6 +4,8 @@ from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
 from ulid import ULID
 
 from src.auth import get_current_user, verify_password
+from src.config import config
+from src.domains.image import Image, SaveType
 from src.schemas.auth import SessionContent
 from src.schemas.user import (
     LoginRequest,
@@ -113,11 +115,24 @@ async def user_profile(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="존재하지 않는 유저입니다"
         )
+
+    user_image: list[Image] = user.images
+    profile_img_url = ""
+    if user_image:
+        user_type = user_image[0].save_type
+        image_name = user_image[0].name
+        if user_type == SaveType.GCP:
+            profile_img_url = (
+                f"{config.GCP_STORAGE_URL}/{config.GCP_BUCKET_NAME}/{image_name}"
+            )
+        elif user_type == SaveType.LOCAL:
+            profile_img_url = f"{image_name}"
+
     response = UserResponse(
         id=user.id,  # type: ignore
         nickname=user.nickname,
         role=user.role,
-        profile_img=user.profile_img_url if user.profile_img_url else "",
+        profile_img=profile_img_url,
         created_at=user.created_at,
         updated_at=user.updated_at,
     )

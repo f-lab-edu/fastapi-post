@@ -14,7 +14,6 @@ class User(SQLModel, table=True):  # type: ignore
     nickname: str
     password: str
     role: Role = Field(default=Role.member)
-    profile_img_url: str | None = Field(default=None)
     created_at: datetime = Field(default=func.now())
     updated_at: datetime = Field(default_factory=func.now)
 
@@ -29,7 +28,7 @@ class User(SQLModel, table=True):  # type: ignore
         back_populates="actor_user",
         sa_relationship_kwargs={"foreign_keys": "Notification.actor_user_id"},
     )
+    images: list["Image"] = Relationship(back_populates="user")  # type: ignore
 
 
-# like.py에서 User를 참조하는 순환참조 에러 발생.
 from src.domains.like import Like
