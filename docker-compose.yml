@@ -16,6 +16,12 @@ services:
       - DATABASE_URL=mysql+aiomysql://user:password@db:3306/exampledb
       - REDIS_URL=redis://localhost
       - PYTHONPATH="./"
+      - LOCAL_UPLOAD_DIR="./profile_img"
+      - REQUESTS_PER_MINUTE=60
+      - BUCKET_SIZE=10.0
+      - GOOGLE_APPLICATION_CREDENTIALS="./keys/gcp_private_key.json"
+      - GCP_STORAGE_URL="https://storage.googleapis.com"
+      - GCP_BUCKET_NAME="fastapi-post-storage"
 
   db:
     image: mysql:lts 

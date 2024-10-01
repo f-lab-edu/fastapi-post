@@ -34,6 +34,7 @@ pydantic = "^2.8.2"
 pytest-mock = "^3.14.0"
 testcontainers = {extras = ["mysql"], version = "^4.8.0"}
 redis = "^5.0.8"
+google-cloud-storage = "^2.18.2"
 
 
 [build-system]
@@ -77,7 +78,8 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 env = [
-  "DATABASE_URL=mysql+aiomysql://user:password@127.0.0.1:3306/testexampledb"
+  "DATABASE_URL=mysql+aiomysql://user:password@127.0.0.1:3306/testexampledb",
+  "TESTING=True"
 ]
 testpaths = [
   "tests"
