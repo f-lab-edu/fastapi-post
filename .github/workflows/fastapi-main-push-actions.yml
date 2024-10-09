@@ -41,6 +41,8 @@ jobs:
       run: |
         poetry run mypy .
     - name: Test with pytest
+      env:
+        GCP_PRIVATE_KEY_BASE64: ${{ secrets.GCP_PRIVATE_KEY_BASE64 }}
       run: |
         poetry run pytest
     - name: Docker build
