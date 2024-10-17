@@ -8,7 +8,6 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.auth import hash_password
 from src.config import config
-from src.database import get_session
 from src.domains.post import Post
 from src.domains.post_view import PostView
 from src.domains.user import User
@@ -19,10 +18,6 @@ DATABASE_URL = config.DATABASE_URL
 
 @pytest_asyncio.fixture
 async def test_client(test_session: AsyncSession) -> AsyncClient:
-    async def override_get_session() -> AsyncSession:
-        yield test_session
-
-    app.dependency_overrides[get_session] = override_get_session
     client = AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
     hashed_password = hash_password(plain_password="Test_password")
     new_user = User(nickname="test_user", password=hashed_password)
@@ -30,8 +25,6 @@ async def test_client(test_session: AsyncSession) -> AsyncClient:
     await test_session.commit()
 
     yield client
-
-    app.dependency_overrides.clear()
 
 
 @pytest.mark.asyncio
@@ -56,11 +49,9 @@ async def test_create_post_ok(
             "content": "test_content",
         },
     )
-
     # then
     assert response.status_code == 201
     assert response.json()["id"]
-
     result = await test_session.exec(select(Post).where(Post.title == "test_title"))
     post = result.first()
     assert post.title == "test_title"

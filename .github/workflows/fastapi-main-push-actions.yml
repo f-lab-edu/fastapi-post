@@ -46,6 +46,8 @@ jobs:
       run: |
         poetry run pytest
     - name: Docker build
+      env:
+        GCP_PRIVATE_KEY_BASE64: ${{ secrets.GCP_PRIVATE_KEY_BASE64 }}
       run: |
         # TODO: shell command 써서 버전 동적으로 주입하기
         docker build -t ksg9482/fastapi-post:24.09.04 .

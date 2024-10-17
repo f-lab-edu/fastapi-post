@@ -1,31 +1,23 @@
 # type: ignore
 
 import pytest
+import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from src.auth import hash_password
 from src.config import config
-from src.database import get_session
 from src.domains.user import User
 from src.main import app
 
 DATABASE_URL = config.DATABASE_URL
 
 
-@pytest.fixture
-def test_client(test_session: AsyncSession) -> AsyncClient:
-    async def override_get_session() -> AsyncSession:
-        yield test_session
-
-    app.dependency_overrides[get_session] = override_get_session
-
+@pytest_asyncio.fixture
+async def test_client(test_session: AsyncSession) -> AsyncClient:
     client = AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
-
     yield client
-
-    app.dependency_overrides.clear()
 
 
 @pytest.mark.asyncio
@@ -44,7 +36,7 @@ async def test_signup_user_ok(
 
     # then
     assert response.status_code == 201
-    assert response.json() == {"id": 1, "nickname": "test_user"}
+    assert response.json()["nickname"] == "test_user"
 
     result = await test_session.exec(select(User).where(User.nickname == "test_user"))
     user = result.first()

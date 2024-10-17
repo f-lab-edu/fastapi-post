@@ -1,10 +1,15 @@
 # type: ignore
 
+from contextlib import asynccontextmanager
+
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker, create_async_engine
 from sqlmodel import SQLModel
 from sqlmodel.ext.asyncio.session import AsyncSession
 from testcontainers.mysql import MySqlContainer
+
+from src.database import get_session_factory
+from src.main import app
 
 
 @pytest_asyncio.fixture(scope="session")
@@ -38,4 +43,17 @@ async def test_session(test_engine: AsyncEngine) -> AsyncSession:
         await conn.run_sync(SQLModel.metadata.create_all)
 
     async with AsyncSessionLocal() as session:
+
+        async def test_get_session_factory():
+            @asynccontextmanager
+            async def _test_get_session(key=None):
+                print("1->", id(session))
+                yield session
+
+            return _test_get_session
+
+        app.dependency_overrides[get_session_factory] = test_get_session_factory
+        print("2->", id(session))
         yield session
+
+    app.dependency_overrides.clear()

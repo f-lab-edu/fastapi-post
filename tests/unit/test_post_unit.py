@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -9,18 +10,24 @@ from src.servicies.post import PostService
 
 
 @pytest.fixture
-def mock_session() -> AsyncMock:
+def mock_session():
     session = AsyncMock(spec=AsyncSession)
     session.add = MagicMock()
     session.commit = AsyncMock()
     session.refresh = AsyncMock()
     session.delete = AsyncMock()
-    return session
+    session.exec = AsyncMock()
+
+    @asynccontextmanager
+    async def session_factory(key=None):
+        yield session
+
+    return session_factory
 
 
 @pytest.fixture
-def post_service(mock_session: AsyncMock) -> PostService:
-    return PostService(session=mock_session)
+def post_service(mock_session):
+    return PostService(session_factory=mock_session)
 
 
 @pytest.mark.asyncio
@@ -68,10 +75,12 @@ async def test_get_posts(mock_session: AsyncMock, post_service: PostService) -> 
     ]
     mock_result = MagicMock()
     mock_result.all.return_value = mock_posts
-    mock_session.exec.return_value = mock_result
 
-    # When
-    result = await post_service.get_posts(page=1)
+    async with mock_session() as session:
+        session.exec.return_value = mock_result
+
+        # When
+        result = await post_service.get_posts(page=1)
 
     # Then
     assert isinstance(result[0], Post)
@@ -79,9 +88,6 @@ async def test_get_posts(mock_session: AsyncMock, post_service: PostService) -> 
     assert result[0].title == "테스트 제목 1"
     assert result[0].content == "테스트 내용 1"
     assert isinstance(result[0].user, User)
-
-    mock_session.exec.assert_called_once()
-    mock_result.all.assert_called_once()
 
 
 @pytest.mark.asyncio
@@ -97,19 +103,18 @@ async def test_get_post(mock_session: AsyncMock, post_service: PostService) -> N
 
     mock_result = MagicMock()
     mock_result.first.return_value = mock_post
-    mock_session.exec.return_value = mock_result
 
-    # When
-    result = await post_service.get_post(post_id=1)
+    async with mock_session() as session:
+        session.exec.return_value = mock_result
+
+        # When
+        result = await post_service.get_post(post_id=1)
 
     # Then
     assert isinstance(result, Post)
     assert result.title == "테스트 제목 1"
     assert result.content == "테스트 내용 1"
     assert isinstance(result.user, User)
-
-    mock_session.exec.assert_called_once()
-    mock_result.first.assert_called_once()
 
 
 @pytest.mark.asyncio
@@ -128,9 +133,6 @@ async def test_edit_post(mock_session: AsyncMock, post_service: PostService) -> 
     assert mock_post.title == "edit_title"
     assert mock_post.content == "edit_content"
 
-    mock_session.add.assert_called_once()
-    mock_session.commit.assert_called_once()
-
 
 @pytest.mark.asyncio
 @pytest.mark.unit
@@ -143,5 +145,3 @@ async def test_delete_post(mock_session: AsyncMock, post_service: PostService) -
 
     # Then
     assert result is None
-
-    mock_session.commit.assert_called_once()

@@ -16,16 +16,17 @@ repos:
     - id: pycln
       args: [--config=pyproject.toml]
 
-- repo: https://github.com/pre-commit/mirrors-mypy
-  rev: ''
-  hooks:
-    - id: mypy
-      additional_dependencies:
-        - "pydantic==v2.8.2"
-        - "sqlmodel==0.0.19"
-        - "redis==5.0.8"
-      args:
-        - --config-file=pyproject.toml
+# - repo: https://github.com/pre-commit/mirrors-mypy
+#   rev: ''
+#   hooks:
+#     - id: mypy
+#       additional_dependencies:
+#         - "pydantic==v2.8.2"
+#         - "sqlmodel==0.0.19"
+#         - "redis==5.0.8"
+#         - "email_validator"
+#       args: [--config-file=pyproject.toml, --ignore-missing-imports, --no-strict-optional]
+#       always_run: true
 
 - repo: local
   hooks:

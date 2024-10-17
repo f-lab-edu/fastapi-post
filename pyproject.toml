@@ -36,6 +36,7 @@ testcontainers = {extras = ["mysql"], version = "^4.8.0"}
 redis = "^5.0.8"
 google-cloud-storage = "^2.18.2"
 apscheduler = "^3.10.4"
+email-validator = "^2.2.0"
 
 
 [build-system]

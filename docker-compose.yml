@@ -9,6 +9,7 @@ services:
       - "80:8000" 
     depends_on:
       - db
+      - db2
       - redis
       - redis2
       - redis3
@@ -30,6 +31,21 @@ services:
     image: mysql:lts 
     ports:
       - "3306:3306"
+    volumes:
+      - mysqldata:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d
+    environment:
+      MYSQL_DATABASE: 'exampledb'
+      MYSQL_USER: 'user'
+      MYSQL_PASSWORD: 'password'
+      MYSQL_ROOT_PASSWORD: 'root'
+    networks:
+      - app-network
+
+  db2:
+    image: mysql:lts 
+    ports:
+      - "3307:3306"
     volumes:
       - mysqldata:/var/lib/mysql
       - ./mysql-init:/docker-entrypoint-initdb.d

@@ -31,4 +31,6 @@ class User(SQLModel, table=True):  # type: ignore
     images: list["Image"] = Relationship(back_populates="user")  # type: ignore
 
 
+from src.domains.image import Image
 from src.domains.like import Like
+from src.domains.notification import Notification
